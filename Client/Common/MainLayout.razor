@@ -1,0 +1,45 @@
+﻿@using Client.States
+@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+
+<MudThemeProvider @ref="@_mudThemeProvider" Theme="StandardTheme.CurrentTheme" DefaultScrollbar="false" IsDarkMode="@StandardTheme.IsInDarkMode" />
+<MudDialogProvider Position="MudBlazor.DialogPosition.Center" />
+<MudSnackbarProvider />
+
+<MudLayout Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
+    <AppBar OnSideBarToggled="ToggleSideBar" SideBarOpen="_sideBarOpen" OnThemeToggled="ToggleTheme" />
+    <MudMainContent>
+        <CascadingValue Value="State">
+            @Body
+        </CascadingValue>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    MudThemeProvider _mudThemeProvider = new();
+    MudTheme _currentTheme = new();
+    Client.States.States State = new();
+    bool _sideBarOpen = false;
+    bool IsDarkMode = false;
+
+    void ToggleSideBar()
+    {
+        _sideBarOpen = !_sideBarOpen;
+    }
+
+    async Task ToggleTheme(MudTheme changedTheme)
+    {
+        _currentTheme = changedTheme;
+        IsDarkMode = StandardTheme.IsInDarkMode;
+        await State.ChangeTheme();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StandardTheme.IsInDarkMode = IsDarkMode = await _mudThemeProvider.GetSystemPreference();
+            StateHasChanged();
+        }
+    }
+}

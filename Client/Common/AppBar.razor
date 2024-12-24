@@ -1,0 +1,31 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<MudAppBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
+
+    <MudText>@Messages.AppBarTitle</MudText>
+    <MudSpacer />
+
+    @if (ShowAlertGreeting && !string.IsNullOrEmpty(GreetingText))
+    {
+        <MudAlert Dense NoIcon Variant="MudBlazor.Variant.Text" Square ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon
+                  CloseIconClicked="(() => CloseAlertGreeting())">@GreetingText</MudAlert>
+    }
+
+    <AuthorizeView>
+        <Authorized>
+            <MudAlert Dense NoIcon Variant="MudBlazor.Variant.Text" Square ContentAlignment="HorizontalAlignment.Center">@($"Logged in as {@context.User.Identity.Name}")</MudAlert>
+        </Authorized>
+        <NotAuthorized>
+            <MudTooltip Text="Login" Arrow>
+                <MudIconButton Icon="@Icons.Material.Filled.Login" Color="MudBlazor.Color.Info" OnClick="@(() => NavigationManager.NavigateTo("/.auth/login/aad", true))" />
+            </MudTooltip>
+        </NotAuthorized>
+    </AuthorizeView>
+
+    <MudTooltip Text="@($"Switch {(StandardTheme.IsInDarkMode ? "light" : "dark")} mode")" Arrow>
+        <MudIconButton Icon="@(!StandardTheme.IsInDarkMode ? @Icons.Material.Filled.DarkMode : @Icons.Material.Filled.LightMode)" Color="MudBlazor.Color.Primary" OnClick="ToggleTheme" />
+    </MudTooltip>
+</MudAppBar>
