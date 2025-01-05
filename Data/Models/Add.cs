@@ -1,11 +1,23 @@
-﻿namespace Data.Models;
+﻿using System;
+
+namespace Data.Models;
 
 public class Add
 {
     public int Id { get; set; }
-    public string TagText { get; set; }
-    public string LogoFile { get; set; }
-    public string ImageFile { get; set; }
-    public bool IsDiscontinued { get; set; }
-
+    public string AddPlacementZone { get; set; }
+    public string LabelText { get; set; }
+    public string ImageUrl { get; set; }
+    public string RedirectUrl { get; set; }
+    public DateTime? ActiveFrom { get; set; }
+    public DateTime? ActiveUntil { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsPublished { get; set; }
+    public int DisplayOrder { get; set; }
+    public int DesktopClickCount { get; set; }
+    public int MobileTapCount { get; set; }
+    public string User { get; set; }
+    public string ImageAsBase64String { get; set; }
+    public string ImageFileName { get; set; }
+    public string ImageBlobUrl { get; set; }
 }

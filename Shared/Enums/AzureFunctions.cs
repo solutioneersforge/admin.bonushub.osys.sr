@@ -6,5 +6,13 @@ namespace Shared.Enums
     {
         [Description("api/FunctionGetAdds")]
         GetAdds,
+        [Description("api/FunctionAddAdd")]
+        AddAdd,
+        [Description("api/FunctionStoreImage")]
+        StoreImage,
+        [Description("api/FunctionDeleteAdd")]
+        DeleteAdd,
+        [Description("api/FunctionGetChangeLogs")]
+        GetLogs,
     }
 }

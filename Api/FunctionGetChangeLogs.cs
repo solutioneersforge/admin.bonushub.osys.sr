@@ -8,19 +8,19 @@ using System.Collections.Generic;
 
 namespace Api
 {
-    public class FunctionGetAdds
+    public class FunctionGetChangeLogs
     {
-        readonly ILogger<FunctionGetAdds> _logger;
+        readonly ILogger<FunctionGetChangeLogs> _logger;
 
-        public FunctionGetAdds(ILogger<FunctionGetAdds> logger) => _logger = logger;
+        public FunctionGetChangeLogs(ILogger<FunctionGetChangeLogs> logger) => _logger = logger;
 
-        [Function("FunctionGetAdds")]
+        [Function("FunctionGetChangeLogs")]
         public IActionResult Run(
-                [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "FunctionGetAdds/{bd}/{ed}")] HttpRequestData req,
-                [SqlInput(commandText: "Bonus.GetAdds",
+                [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "FunctionGetChangeLogs/{bd}/{ed}")] HttpRequestData req,
+                [SqlInput(commandText: "Bonus.GetChangeLogs",
                     commandType: System.Data.CommandType.StoredProcedure,
                     parameters: "@Bd={bd},@Ed={ed}",
-                    connectionStringSetting: "AZURESQL_CONNECTION_STRING")] IEnumerable<Add> result
+                    connectionStringSetting: "AZURESQL_CONNECTION_STRING")] IEnumerable<Changelog> result
                 )
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");

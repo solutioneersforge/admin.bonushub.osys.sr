@@ -1,0 +1,119 @@
+﻿@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+
+@using System.Text.Json
+@using Data.AzureFunctionResponse
+@using Data.Models
+
+<MudDataGrid @ref="@MudDataGridRef" Loading="@_loading" LoadingProgressColor="MudBlazor.Color.Info" Items="@Logs"
+             Filterable Dense Striped Bordered Hover Square Outlined Virtualize FixedHeader FixedFooter
+             QuickFilter="@_quickFilter"
+             FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Column"
+             >
+    <ToolBarContent>
+        <MudDateRangePicker AdornmentColor="MudBlazor.Color.Primary" Color="MudBlazor.Color.Secondary"
+                            StartMonth="@DateTime.Now.AddMonths(-1)" FirstDayOfWeek="@DayOfWeek.Monday"
+                            DateFormat="dd MMM yyyy" TitleDateFormat="ddd dd MMM" PickerVariant="PickerVariant.Dialog"
+                            ShowWeekNumbers Rounded Square Clearable
+                            @bind-DateRange="SelectedDateRange" AutoClose="false" @ref="_pickerRange" Style="text-decoration:none">
+            <PickerActions>
+                <MudButton Class="mr-auto align-self-start" OnClick="@(async () => {_pickerRange?.ClearAsync(); SelectedDateRange = SelectedDateRangeReset; StateHasChanged(); await LoadData();})" Style="text-decoration:none">Reset</MudButton>
+                <MudButton OnClick="@(() => _pickerRange?.CloseAsync(false))" Style="text-decoration:none">Cancel</MudButton>
+                <MudButton Color="MudBlazor.Color.Primary" OnClick="@(async () => {_pickerRange?.CloseAsync(); await LoadData();})" Style="text-decoration:none">Ok</MudButton>
+            </PickerActions>
+        </MudDateRangePicker>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="Id" />
+        <PropertyColumn Property="x => x.TableName" Title="Table" />
+        <PropertyColumn Property="x => x.Operation" Title="Operation" />
+        <PropertyColumn Property="x => x.ChangedBy" Title="Who" />
+        <PropertyColumn Property="x => x.ChangeDate" Title="When" Format="dd MMM yyyy HH:mm:ss" />
+        <PropertyColumn Property="x => x.RecordId" Title="Record Id." />
+        <PropertyColumn Property="x => x.OldValues" Title="Old value" />
+        <PropertyColumn Property="x => x.NewValues" Title="New value" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Changelog" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    readonly Action<SnackbarOptions> config = (SnackbarOptions options) =>
+     {
+         options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+         options.ShowCloseIcon = true;
+     };
+
+    MudDataGrid<Changelog> MudDataGridRef = new();
+    MudDateRangePicker _pickerRange { get; set; } = new();
+    DateRange SelectedDateRangeReset = new DateRange(DateTime.Now.Date.AddMonths(-1), DateTime.Now.Date);
+    DateRange SelectedDateRange = new DateRange(DateTime.Now.Date.AddMonths(-1), DateTime.Now.Date);
+    bool _autoClose;
+    bool _loading;
+    string _searchString = string.Empty;
+    IEnumerable<Changelog> Logs = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            SnackbarService.Clear();
+            _loading = true;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private Func<Changelog, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.ChangedBy.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.ChangeDate is not null && x.ChangeDate.Value.ToString("dd MMM yyyy HH:mm:ss").Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.OldValues.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.NewValues.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.RecordId.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    };
+
+
+    //async Task HandleRowDoubleClick(MouseEventArgs args, Changelog item) => await OpenForm(item);
+   
+
+    async Task LoadData()
+    {
+        var start = SelectedDateRange.Start;
+        var end = SelectedDateRange.End;
+
+        var bd = int.Parse($"{start?.Year}{(start?.Month > 9 ? string.Empty : $"0")}{start?.Month}{(start?.Day > 9 ? string.Empty : $"0")}{start?.Day}");
+        var ed = int.Parse($"{end?.Year}{(end?.Month > 9 ? string.Empty : $"0")}{end?.Month}{(end?.Day > 9 ? string.Empty : $"0")}{end?.Day}");
+
+        var func = AzureFunctions.GetLogs.GetName();
+        var response = await Http.GetStringAsync($"{func}/{bd}/{ed}");
+
+        var data = JsonSerializer.Deserialize<AfrChangelog>(response);
+        Logs = data?.Value ?? [];
+    }
+}

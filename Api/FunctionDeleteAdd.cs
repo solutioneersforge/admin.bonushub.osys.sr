@@ -12,14 +12,14 @@ using System.Threading.Tasks;
 
 namespace Api
 {
-    public class FunctionAddAdd
+    public class FunctionDeleteAdd
     {
-        readonly ILogger<FunctionAddAdd> _logger;
+        readonly ILogger<FunctionDeleteAdd> _logger;
 
-        public FunctionAddAdd(ILogger<FunctionAddAdd> logger) => _logger = logger;
+        public FunctionDeleteAdd(ILogger<FunctionDeleteAdd> logger) => _logger = logger;
 
-        [Function("FunctionAddAdd")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "FunctionAddAdd")] HttpRequestData req)
+        [Function("FunctionDeleteAdd")]
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "FunctionDeleteAdd")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -64,22 +64,12 @@ namespace Api
             {
                 await connection.OpenAsync();
 
-                using (SqlCommand command = new("Bonus.AddAdd", connection))
+                using (SqlCommand command = new("Bonus.DeleteAdd", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
 
                     command.Parameters.Add(new SqlParameter("@Id", SqlDbType.Int) { Value = add.Id });
-                    command.Parameters.Add(new SqlParameter("@AddPlacementZone", SqlDbType.NVarChar) { Value = add.AddPlacementZone });
-                    command.Parameters.Add(new SqlParameter("@LabelText", SqlDbType.NVarChar) { Value = add.LabelText });
-                    command.Parameters.Add(new SqlParameter("@ImageUrl", SqlDbType.NVarChar) { Value = add.ImageUrl });
-                    command.Parameters.Add(new SqlParameter("@RedirectUrl", SqlDbType.NVarChar) { Value = add.RedirectUrl });
-                    command.Parameters.Add(new SqlParameter("@ActiveFrom", SqlDbType.Date) { Value = add.ActiveFrom });
-                    command.Parameters.Add(new SqlParameter("@ActiveUntil", SqlDbType.Date) { Value = add.ActiveUntil });
-                    command.Parameters.Add(new SqlParameter("@IsActive", SqlDbType.Bit) { Value = add.IsActive });
-                    command.Parameters.Add(new SqlParameter("@IsPublished", SqlDbType.Bit) { Value = add.IsPublished });
-                    command.Parameters.Add(new SqlParameter("@DisplayOrder", SqlDbType.Int) { Value = add.DisplayOrder });
                     command.Parameters.Add(new SqlParameter("@User", SqlDbType.NVarChar) { Value = add.User });
-
 
                     return await command.ExecuteNonQueryAsync() > 0;
                 }

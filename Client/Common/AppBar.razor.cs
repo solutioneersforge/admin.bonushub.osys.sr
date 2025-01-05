@@ -26,6 +26,7 @@ namespace Client.Common
         private int counterGreeting = 0;
         private bool ShowAlertGreeting = true;
         private string GreetingText = string.Empty;
+        string LoggedInUser = string.Empty;
         private void CloseAlertGreeting() => ShowAlertGreeting = false;
 
         protected override async Task OnInitializedAsync()
@@ -53,7 +54,12 @@ namespace Client.Common
                 };
                 timerGreeting.Start();
 
-                await Task.CompletedTask;
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var user = authState.User;
+                if (user.Identity != null && user.Identity.IsAuthenticated)
+                {
+                    LoggedInUser = user.Identity.Name;
+                }
             }
             catch
             {

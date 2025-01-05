@@ -1,0 +1,259 @@
+﻿@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Text.Json
+@using Data.AzureFunctionResponse
+@using Data.Models
+@using Microsoft.AspNetCore.Components.Forms
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="@SelectedItem.LabelText" Label="Text" Variant="Variant.Outlined"></MudTextField>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="Redirect url" Variant="Variant.Outlined"></MudTextField>
+            </MudItem>
+            <MudItem xs="12">
+                <div class="d-flex justify-center">
+                    <MudStack>
+                        <MudImage hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Height="200" Width="400" Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25" Class="rounded-lg" />
+                        <MudStack Row>
+                            @if (SaveInProgress)
+                            {
+                                <MudProgressCircular Indeterminate Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" />
+                                <MudAlert NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">Uploading...</MudAlert>
+                            }
+                            else
+                            {
+                                <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png, .apng, .jpg, .jpeg, .jpe, .jif, .jfif, .svg, .webp, .bmp, .tif, .tiff, .avif, .xbm" Required>
+                                    <ActivatorContent>
+                                        <MudIconButton Color="MudBlazor.Color.Info"
+                                        Icon="@Icons.Material.Filled.PhotoCamera">
+                                        </MudIconButton>
+                                    </ActivatorContent>
+                                </MudFileUpload>
+                                <MudAlert hidden="@(string.IsNullOrEmpty(@SelectedItem.ImageUrl))" NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">@SelectedItem.ImageUrl</MudAlert>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </div>
+            </MudItem>
+            <MudItem xs="12">
+                <MudStack Row>
+                    <MudDatePicker Label="From" @bind-Date="@SelectedItem.ActiveFrom" Style="text-decoration: none" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" Required RequiredError="An start-date is required for expiry or retention period." />
+                    <MudDatePicker Label="Until" @bind-Date="@SelectedItem.ActiveUntil" Style="text-decoration: none" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" Required RequiredError="An end-date is required for expiry or retention period." />
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12">
+                <MudStack Row>
+                    <MudRadioGroup @bind-Value="@SelectedItem.AddPlacementZone" Required RequiredError="Please select a placement zone on the UI for the image to display.">
+                        @foreach (var z in FixedItems.ImagePlacementZones)
+                        {
+                            <MudRadio Value="@z">@z</MudRadio>
+                        }
+                    </MudRadioGroup>
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12">
+                <MudStack Row>
+                    <MudNumericField Min="1" Step="1" Adornment="Adornment.Start" Variant="MudBlazor.Variant.Outlined" @bind-Value="@SelectedItem.DisplayOrder" Label="Display order (rank)" Immediate />
+                    <MudSwitch @bind-Value="@SelectedItem.IsActive" ThumbIcon="@(SelectedItem.IsActive ? @Icons.Material.Filled.Image : @Icons.Material.Filled.HideImage)" ThumbIconColor="@(SelectedItem.IsActive ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Is active? {(SelectedItem.IsActive ? "yes" : "no")}")</MudSwitch>
+                    <MudSwitch @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Publish : @Icons.Material.Filled.Checklist)" ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Is published? {(SelectedItem.IsPublished ? "yes" : "no")}")</MudSwitch>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Reset" Disabled="@SaveInProgress">Reset</MudButton>
+        <MudSpacer />
+        @if (SelectedItem.Id == -1)
+        {
+            <MudSwitch @bind-Value="@DoNotCloseForm" ThumbIcon="@(DoNotCloseForm ? @Icons.Material.Filled.OpenInNew : @Icons.Material.Filled.OpenInNewOff)" ThumbIconColor="@(DoNotCloseForm ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Keep form open? {(DoNotCloseForm ? "yes" : "no")}")</MudSwitch>
+        }
+        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Done" Disabled="@SaveInProgress">@(SaveInProgress ? "Saving..." : "Done")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public Add SelectedItem { get; set; } = new();
+
+    readonly Action<SnackbarOptions> config = (SnackbarOptions options) =>
+    {
+        options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+        options.ShowCloseIcon = true;
+    };
+
+    IBrowserFile ImageFile = null!;
+    Add BackupCopyItem { get; set; } = new();
+   
+    string SelectedImageSrc = string.Empty;
+    string LoggedInUser = string.Empty;
+    bool SaveInProgress = false; bool DoNotCloseForm = false;
+    int NumberOfNewItemsSaved;
+    CancellationTokenSource AbortTokenSource = new();
+
+    protected override void OnParametersSet()
+    {
+        if (SelectedItem.Id > 0)
+        {
+            SelectedImageSrc = SelectedItem.ImageBlobUrl;
+        }
+        LoggedInUser = SelectedItem.User;
+        BackupCopyItem = new Add { Id = SelectedItem.Id, IsPublished = SelectedItem.IsPublished, ImageBlobUrl = SelectedItem.ImageBlobUrl, ActiveFrom = SelectedItem.ActiveFrom, ActiveUntil = SelectedItem.ActiveUntil, AddPlacementZone = SelectedItem.AddPlacementZone, IsActive = SelectedItem.IsActive, DisplayOrder = SelectedItem.DisplayOrder, ImageUrl = SelectedItem.ImageUrl, LabelText = SelectedItem.LabelText, RedirectUrl = SelectedItem.RedirectUrl };
+    }
+
+    async Task UploadImageFile(IBrowserFile file)
+    {
+        if (file is not null)
+        {
+            ImageFile = file;
+            SelectedItem.ImageUrl = ImageFile.Name;
+            using (var stream = ImageFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)) // 10 MB limit
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await stream.CopyToAsync(memoryStream);
+                    byte[] imageBytes = memoryStream.ToArray();
+                    SelectedImageSrc = $"data:{file.ContentType};base64,{Convert.ToBase64String(imageBytes)}";
+                }
+            }
+        }
+    }
+
+    async Task Done()
+    {
+        try
+        {
+            SaveInProgress = true;
+
+            if (string.IsNullOrEmpty(SelectedItem.LabelText))
+            {
+                SnackbarService.Clear();
+                SnackbarService.Add("Please provide a text for the add/bonus.", Severity.Info, configure: config);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(SelectedItem.RedirectUrl))
+            {
+                SnackbarService.Clear();
+                SnackbarService.Add("The redirect URL is missing!", Severity.Info, configure: config);
+                return;
+            }
+
+            if (!SelectedItem.RedirectUrl.StartsWith("http"))
+            {
+                SnackbarService.Clear();
+                SnackbarService.Add("The redirect URL must start with http:// or https://", Severity.Info, configure: config);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(SelectedImageSrc))
+            {
+                SnackbarService.Clear();
+                SnackbarService.Add("No image has been selected!", Severity.Info, configure: config);
+                return;
+            }
+
+            if (FixedItems.AllowedImageExtensions.Split(",", StringSplitOptions.TrimEntries).FirstOrDefault(x => SelectedItem.ImageUrl.ToLower().EndsWith(x)) is null)
+            {
+                SnackbarService.Clear();
+                SnackbarService.Add($"Image with the following extensions is allowed: {FixedItems.AllowedImageExtensions}!", Severity.Info, configure: config);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(SelectedItem.AddPlacementZone))
+            {
+                SnackbarService.Clear();
+                SnackbarService.Add("Please select a zone to place the image in.", Severity.Info, configure: config);
+                return;
+            }
+
+            CancellationToken cancellationToken = AbortTokenSource.Token;
+            await SaveDataAsync(cancellationToken);
+            if (DoNotCloseForm)
+            {
+                NumberOfNewItemsSaved++;
+                ImageFile = null!;
+                SelectedImageSrc = string.Empty;
+                SelectedItem = new Add { Id = -1, LabelText = string.Empty, RedirectUrl = string.Empty, ImageUrl = string.Empty, ImageFileName = string.Empty, User = LoggedInUser, ImageAsBase64String = string.Empty, AddPlacementZone = "Top", IsActive = true, IsPublished = false, DisplayOrder = 1, ActiveFrom = DateTime.Now, ActiveUntil = DateTime.Now, DesktopClickCount = 0, MobileTapCount = 0 };
+                StateHasChanged();
+                return;
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (OperationCanceledException)
+        {
+            SnackbarService.Clear();
+            SnackbarService.Add("Operation cancelled. Changes were not saved.", Severity.Info, configure: config);
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Clear();
+            SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+        }
+        finally
+        {
+            SaveInProgress = false;
+        }
+    }
+
+    async Task Cancel()
+    {
+        //when data is being processed then the cancel button functions as an abort operation
+        if (SaveInProgress)
+        {
+            SnackbarService.Clear();
+            SnackbarService.Add("Cancelling...", Severity.Info, configure: config); await AbortTokenSource.CancelAsync();
+            return;
+        }
+
+        //if form was kept open and user has created multiple item then the list should be reloaded when this form is closed.
+        if (NumberOfNewItemsSaved > 0) { MudDialog.Close(DialogResult.Ok(true)); }
+
+        //on cancellation and closing of the form
+        Reset(); MudDialog.Cancel(); 
+    }
+
+    void Reset()
+    {
+        SelectedImageSrc = string.Empty; SelectedItem = BackupCopyItem;
+        if (SelectedItem.Id > 0)
+        {
+            SelectedImageSrc = BackupCopyItem.ImageBlobUrl;
+        }
+        StateHasChanged();
+    }
+
+    async Task<bool> SaveDataAsync(CancellationToken token)
+    {
+        /*
+         * do not check whether image is stored or not 
+         * as sometimes user would want to edit other information than changing the image
+         * in this case ImageFile will be null
+         */
+        await StoreImage(token); 
+        var func = AzureFunctions.AddAdd.GetName();
+        var response = await Http.PostAsJsonAsync(func, SelectedItem, token);
+        return response.IsSuccessStatusCode;
+    }
+
+    async Task<bool> StoreImage(CancellationToken token)
+    {
+        if (ImageFile is null) return false;
+        SelectedItem.ImageAsBase64String = SelectedImageSrc.Replace($"data:{ImageFile.ContentType};base64,", "");
+        SelectedItem.ImageFileName = ImageFile.Name;
+        var func = AzureFunctions.StoreImage.GetName();
+        var response = await Http.PostAsJsonAsync(func, SelectedItem, token);
+        return response.IsSuccessStatusCode;
+    }
+}

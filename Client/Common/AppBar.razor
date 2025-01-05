@@ -2,6 +2,7 @@
 @inject ISnackbar SnackbarService
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <MudAppBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
 
@@ -19,13 +20,12 @@
             <MudAlert Dense NoIcon Variant="MudBlazor.Variant.Text" Square ContentAlignment="HorizontalAlignment.Center">@($"Logged in as {@context.User.Identity.Name}")</MudAlert>
         </Authorized>
         <NotAuthorized>
-            <MudTooltip Text="Login" Arrow>
+            <MudTooltip Text="Login" Arrow Placement="Placement.Bottom">
                 <MudIconButton Icon="@Icons.Material.Filled.Login" Color="MudBlazor.Color.Info" OnClick="@(() => NavigationManager.NavigateTo("/.auth/login/aad", true))" />
             </MudTooltip>
         </NotAuthorized>
     </AuthorizeView>
-
-    <MudTooltip Text="@($"Switch {(StandardTheme.IsInDarkMode ? "light" : "dark")} mode")" Arrow>
+    <MudTooltip Text="@($"Switch {(StandardTheme.IsInDarkMode ? "light" : "dark")} mode")" Arrow Placement="Placement.Bottom">
         <MudIconButton Icon="@(!StandardTheme.IsInDarkMode ? @Icons.Material.Filled.DarkMode : @Icons.Material.Filled.LightMode)" Color="MudBlazor.Color.Primary" OnClick="ToggleTheme" />
     </MudTooltip>
 </MudAppBar>

@@ -4,7 +4,7 @@ namespace Shared.Enums
 {
     public enum AuthRoles
     {
-        [Description("teacher")]
-        Teacher,
+        [Description("admin")]
+        Admin,
     }
 }

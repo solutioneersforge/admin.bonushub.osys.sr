@@ -1,0 +1,24 @@
+﻿@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudText>@Item.HeaderText</MudText>
+        <MudText Typo="Typo.body2">@Item.MessageText</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudSpacer />
+        <MudButton  EndIcon="@Item.CancelButtonIcon" Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Cancel">@Item.CancelButtonText</MudButton>
+        <MudButton EndIcon="@Item.SubmitButtonIcon" Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Submit">@Item.SubmitButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public (string HeaderText, string MessageText, string SubmitButtonText, string CancelButtonText, string SubmitButtonIcon, string CancelButtonIcon) Item { get; set; } = new();
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    void Cancel() => MudDialog.Cancel();
+}
