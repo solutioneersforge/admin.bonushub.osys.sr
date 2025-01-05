@@ -1,10 +1,13 @@
 using Data.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Shared.Enums;
+using Shared.Extentions;
 using System;
 using System.Data;
 using System.IO;
@@ -23,11 +26,11 @@ namespace Api
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            //var user = Authentication.StaticWebAppsApiAuth.Parse(req);
-            //if (!user.IsInRole(AuthRoles.Admin.GetDescription()))
-            //{
-            //    return new StatusCodeResult(StatusCodes.Status401Unauthorized);
-            //}
+            var user = Authentication.StaticWebAppsApiAuth.Parse(req);
+            if (!user.IsInRole(AuthRoles.Admin.GetDescription()))
+            {
+                return new StatusCodeResult(StatusCodes.Status401Unauthorized);
+            }
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var parameters = JsonConvert.DeserializeObject<Add>(requestBody);
