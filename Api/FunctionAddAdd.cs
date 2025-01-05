@@ -19,7 +19,7 @@ namespace Api
         public FunctionAddAdd(ILogger<FunctionAddAdd> logger) => _logger = logger;
 
         [Function("FunctionAddAdd")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "FunctionAddAdd")] HttpRequestData req)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.User, "post", Route = "FunctionAddAdd")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
