@@ -5,6 +5,9 @@
     <OutputType>Exe</OutputType>
     <UserSecretsId>dad5518a-0bc3-4ce7-a022-754dfcebf63d</UserSecretsId>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Content Include="local.settings.json" />
   </ItemGroup>

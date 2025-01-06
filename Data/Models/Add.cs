@@ -7,7 +7,7 @@ public class Add
     public int Id { get; set; }
     public string AddPlacementZone { get; set; }
     public string LabelText { get; set; }
-    public string ImageUrl { get; set; }
+    public string ImageFileName { get; set; }
     public string RedirectUrl { get; set; }
     public DateTime? ActiveFrom { get; set; }
     public DateTime? ActiveUntil { get; set; }
@@ -18,6 +18,6 @@ public class Add
     public int MobileTapCount { get; set; }
     public string User { get; set; }
     public string ImageAsBase64String { get; set; }
-    public string ImageFileName { get; set; }
+    public string ImageBlobName { get; set; }
     public string ImageBlobUrl { get; set; }
 }

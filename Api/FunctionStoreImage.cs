@@ -31,7 +31,7 @@ namespace Api
             StorageSharedKeyCredential sharedKeyCredential = new StorageSharedKeyCredential(account, key);
             var blobServiceClient = new BlobServiceClient(new Uri(uri), sharedKeyCredential);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(account);
-            BlobClient blobClient = containerClient.GetBlobClient(parameters.ImageFileName);
+            BlobClient blobClient = containerClient.GetBlobClient(parameters.ImageBlobName);
 
             byte[] imageBytes = Convert.FromBase64String(parameters.ImageAsBase64String);
             using (var stream = new MemoryStream(imageBytes))

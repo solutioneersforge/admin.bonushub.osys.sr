@@ -39,7 +39,7 @@
                                         </MudIconButton>
                                     </ActivatorContent>
                                 </MudFileUpload>
-                                <MudAlert hidden="@(string.IsNullOrEmpty(@SelectedItem.ImageUrl))" NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">@SelectedItem.ImageUrl</MudAlert>
+                                <MudAlert hidden="@(string.IsNullOrEmpty(@SelectedItem.ImageFileName))" NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">@SelectedItem.ImageFileName</MudAlert>
                             }
                         </MudStack>
                     </MudStack>
@@ -47,8 +47,8 @@
             </MudItem>
             <MudItem xs="12">
                 <MudStack Row>
-                    <MudDatePicker Label="From" @bind-Date="@SelectedItem.ActiveFrom" Style="text-decoration: none" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" Required RequiredError="An start-date is required for expiry or retention period." />
-                    <MudDatePicker Label="Until" @bind-Date="@SelectedItem.ActiveUntil" Style="text-decoration: none" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" Required RequiredError="An end-date is required for expiry or retention period." />
+                    <MudDatePicker Label="From" @bind-Date="@SelectedItem.ActiveFrom" Style="text-decoration: none;width:fit-content;" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" Required RequiredError="An start-date is required for expiry or retention period." />
+                    <MudDatePicker Label="Until" @bind-Date="@SelectedItem.ActiveUntil" Style="text-decoration: none;width:fit-content;" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" Required RequiredError="An end-date is required for expiry or retention period." />
                 </MudStack>
             </MudItem>
             <MudItem xs="12">
@@ -109,7 +109,7 @@
             SelectedImageSrc = SelectedItem.ImageBlobUrl;
         }
         LoggedInUser = SelectedItem.User;
-        BackupCopyItem = new Add { Id = SelectedItem.Id, IsPublished = SelectedItem.IsPublished, ImageBlobUrl = SelectedItem.ImageBlobUrl, ActiveFrom = SelectedItem.ActiveFrom, ActiveUntil = SelectedItem.ActiveUntil, AddPlacementZone = SelectedItem.AddPlacementZone, IsActive = SelectedItem.IsActive, DisplayOrder = SelectedItem.DisplayOrder, ImageUrl = SelectedItem.ImageUrl, LabelText = SelectedItem.LabelText, RedirectUrl = SelectedItem.RedirectUrl };
+        BackupCopyItem = new Add { Id = SelectedItem.Id, IsPublished = SelectedItem.IsPublished, ImageBlobName = SelectedItem.ImageBlobName, ImageBlobUrl = SelectedItem.ImageBlobUrl, ActiveFrom = SelectedItem.ActiveFrom, ActiveUntil = SelectedItem.ActiveUntil, AddPlacementZone = SelectedItem.AddPlacementZone, IsActive = SelectedItem.IsActive, DisplayOrder = SelectedItem.DisplayOrder, ImageFileName = SelectedItem.ImageFileName, LabelText = SelectedItem.LabelText, RedirectUrl = SelectedItem.RedirectUrl };
     }
 
     async Task UploadImageFile(IBrowserFile file)
@@ -117,7 +117,8 @@
         if (file is not null)
         {
             ImageFile = file;
-            SelectedItem.ImageUrl = ImageFile.Name;
+            SelectedItem.ImageFileName = ImageFile.Name;
+            SelectedItem.ImageBlobName = $"{Guid.NewGuid()}{Path.GetExtension(ImageFile.Name)}";
             using (var stream = ImageFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)) // 10 MB limit
             {
                 using (var memoryStream = new MemoryStream())
@@ -164,7 +165,7 @@
                 return;
             }
 
-            if (FixedItems.AllowedImageExtensions.Split(",", StringSplitOptions.TrimEntries).FirstOrDefault(x => SelectedItem.ImageUrl.ToLower().EndsWith(x)) is null)
+            if (FixedItems.AllowedImageExtensions.Split(",", StringSplitOptions.TrimEntries).FirstOrDefault(x => SelectedItem.ImageFileName.ToLower().EndsWith(x)) is null)
             {
                 SnackbarService.Clear();
                 SnackbarService.Add($"Image with the following extensions is allowed: {FixedItems.AllowedImageExtensions}!", Severity.Info, configure: config);
@@ -185,7 +186,7 @@
                 NumberOfNewItemsSaved++;
                 ImageFile = null!;
                 SelectedImageSrc = string.Empty;
-                SelectedItem = new Add { Id = -1, LabelText = string.Empty, RedirectUrl = string.Empty, ImageUrl = string.Empty, ImageFileName = string.Empty, User = LoggedInUser, ImageAsBase64String = string.Empty, AddPlacementZone = "Top", IsActive = true, IsPublished = false, DisplayOrder = 1, ActiveFrom = DateTime.Now, ActiveUntil = DateTime.Now, DesktopClickCount = 0, MobileTapCount = 0 };
+                SelectedItem = new Add { Id = -1, LabelText = string.Empty, RedirectUrl = string.Empty, ImageBlobName = string.Empty, ImageFileName = string.Empty, User = LoggedInUser, ImageAsBase64String = string.Empty, AddPlacementZone = "Top", IsActive = true, IsPublished = false, DisplayOrder = 1, ActiveFrom = DateTime.Now, ActiveUntil = DateTime.Now, DesktopClickCount = 0, MobileTapCount = 0 };
                 StateHasChanged();
                 return;
             }
@@ -251,7 +252,6 @@
     {
         if (ImageFile is null) return false;
         SelectedItem.ImageAsBase64String = SelectedImageSrc.Replace($"data:{ImageFile.ContentType};base64,", "");
-        SelectedItem.ImageFileName = ImageFile.Name;
         var func = AzureFunctions.StoreImage.GetName();
         var response = await Http.PostAsJsonAsync(func, SelectedItem, token);
         return response.IsSuccessStatusCode;

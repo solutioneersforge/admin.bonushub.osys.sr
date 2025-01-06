@@ -14,23 +14,9 @@
 @using Data.AzureFunctionResponse
 @using Data.Models
 
-<MudDataGrid @ref="@MudDataGridRef" Loading="@_loading" LoadingProgressColor="MudBlazor.Color.Info" Items="@Adds"
-Filterable Dense Striped Bordered Hover Square Outlined Virtualize FixedHeader FixedFooter
-QuickFilter="@_quickFilter"
-FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Column"
-@ondblclick="(args => HandleRowDoubleClick(args, MudDataGridRef.SelectedItem))">
-    <ToolBarContent>
-        <MudDateRangePicker AdornmentColor="MudBlazor.Color.Primary" Color="MudBlazor.Color.Secondary"
-        StartMonth="@DateTime.Now.AddMonths(-1)" FirstDayOfWeek="@DayOfWeek.Monday"
-        DateFormat="dd MMM yyyy" TitleDateFormat="ddd dd MMM" PickerVariant="PickerVariant.Dialog"
-        ShowWeekNumbers Rounded Square Clearable
-        @bind-DateRange="SelectedDateRange" AutoClose="false" @ref="_pickerRange" Style="text-decoration:none">
-            <PickerActions>
-                <MudButton Class="mr-auto align-self-start" OnClick="@(async () => {_pickerRange?.ClearAsync(); SelectedDateRange = SelectedDateRangeReset; StateHasChanged(); await LoadData();})" Style="text-decoration:none">Reset</MudButton>
-                <MudButton OnClick="@(() => _pickerRange?.CloseAsync(false))" Style="text-decoration:none">Cancel</MudButton>
-                <MudButton Color="MudBlazor.Color.Primary" OnClick="@(async () => {_pickerRange?.CloseAsync(); await LoadData();})" Style="text-decoration:none">Ok</MudButton>
-            </PickerActions>
-        </MudDateRangePicker>
+<MudToolBar>
+   <MudDatePicker Variant="Variant.Text" Margin="Margin.Dense" Label="From" @bind-Date="@FilterStartDate" Style="text-decoration: none;width:fit-content;" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog"  />
+        <MudDatePicker Variant="Variant.Text" Margin="Margin.Dense"  Label="Until" @bind-Date="@FilterEndDate" Style="text-decoration: none;width:fit-content;" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" />
         <MudTooltip Text="Reload" Arrow Placement="Placement.Bottom">
             <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="LoadData" />
         </MudTooltip>
@@ -45,14 +31,20 @@ FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Co
         </MudTooltip>
         <MudSpacer />
         <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate
-        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
-    </ToolBarContent>
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+
+</MudToolBar>
+
+<MudDataGrid @ref="@MudDataGridRef" Loading="@_loading" LoadingProgressColor="MudBlazor.Color.Info" Items="@Adds"
+             Filterable Dense Striped Bordered Hover Square Outlined Virtualize FixedHeader FixedFooter
+             QuickFilter="@_quickFilter"
+             FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Column">
     <Columns>
         <TemplateColumn CellClass="d-flex justify-start" StickyLeft>
             <CellTemplate>
                 <MudTooltip Arrow Placement="Placement.Right" TooltipContent="@(GetTooltipText(context.Item))">
                     <MudStack Row>
-                        <MudIconButton OnClick="@(() => OpenForm(context.Item))" Icon="@Icons.Material.Filled.Edit"  />
+                        <MudIconButton OnClick="@(() => OpenForm(context.Item))" Icon="@Icons.Material.Filled.Edit" />
                         <MudIconButton OnClick="@(() => DeleteItem(context.Item))" Icon="@Icons.Material.Filled.Delete" Color="MudBlazor.Color.Error" />
                     </MudStack>
                 </MudTooltip>
@@ -61,8 +53,8 @@ FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Co
         <PropertyColumn Property="x => x.Id" Title="Id" />
         <PropertyColumn Property="x => x.AddPlacementZone" Title="Add placement zone" />
         <PropertyColumn Property="x => x.LabelText" Title="Text" />
-        <PropertyColumn Property="x => x.ImageUrl" Title="Image" />
-        <PropertyColumn Property="x => x.RedirectUrl" Title="Redirect URL" />
+        <PropertyColumn Property="x => x.ImageFileName" Title="Image" CellStyle="text-overflow: hidden;white-space: nowrap;text-wrap: nowrap;" />
+        <PropertyColumn Property="x => x.RedirectUrl" Title="Redirect URL" CellStyle="text-overflow: hidden;white-space: nowrap;text-wrap: nowrap;" />
         <PropertyColumn Property="x => x.ActiveFrom" Title="From" Format="dd MMM yyyy" />
         <PropertyColumn Property="x => x.ActiveUntil" Title="Until" Format="dd MMM yyyy" />
         <PropertyColumn Property="@(x => x.IsActive ? "Yes" : "No")" Title="Active?" />
@@ -94,14 +86,13 @@ FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Co
      };
 
     MudDataGrid<Add> MudDataGridRef = new();
-    MudDateRangePicker _pickerRange { get; set; } = new();
-    DateRange SelectedDateRangeReset = new DateRange(DateTime.Now.Date.AddMonths(-1), DateTime.Now.AddMonths(1).Date);
-    DateRange SelectedDateRange = new DateRange(DateTime.Now.Date.AddMonths(-1), DateTime.Now.AddMonths(1).Date);
+    DateTime? FilterStartDate = DateTime.Now.AddMonths(-1);
+    DateTime? FilterEndDate = DateTime.Now.AddMonths(1);
     bool _autoClose;
     bool _loading;
     string _searchString = string.Empty;
     string LoggedInUser = string.Empty;
-    Add NewItem = new Add { Id = -1, LabelText = string.Empty, RedirectUrl = string.Empty, ImageUrl = string.Empty, ImageFileName = string.Empty, ImageAsBase64String = string.Empty, AddPlacementZone = "Top", IsActive = true, IsPublished = false, DisplayOrder = 1, ActiveFrom = DateTime.Now, ActiveUntil = DateTime.Now, DesktopClickCount = 0, MobileTapCount = 0 };
+    Add NewItem = new Add { Id = -1, LabelText = string.Empty, RedirectUrl = string.Empty, ImageBlobName = string.Empty, ImageFileName = string.Empty, ImageAsBase64String = string.Empty, AddPlacementZone = "Top", IsActive = true, IsPublished = false, DisplayOrder = 1, ActiveFrom = DateTime.Now, ActiveUntil = DateTime.Now, DesktopClickCount = 0, MobileTapCount = 0 };
     IEnumerable<Add> Adds = [];
 
     protected override async Task OnInitializedAsync()
@@ -110,6 +101,7 @@ FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Co
         {
             SnackbarService.Clear();
 
+#if !DEBUG
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
@@ -123,6 +115,7 @@ FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Co
             {
                 LoggedInUser = user.Identity.Name;
             }
+#endif
 
             _loading = true;
             await LoadData();
@@ -152,7 +145,7 @@ FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Co
         if (x.RedirectUrl.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (x.ImageUrl.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+        if (x.ImageFileName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
         if (x.DisplayOrder.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
@@ -173,12 +166,13 @@ FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Co
 
     async Task OpenLink(Add item) => await JSRuntime.InvokeVoidAsync("open", item.RedirectUrl, "_blank");
 
-    async Task HandleRowDoubleClick(MouseEventArgs args, Add item) => await OpenForm(item);
-
     async Task OpenForm(Add item)
     {
-        //item.User = "Debugger";
+#if DEBUG
+    item.User = "Debugger";
+#else
         item.User = LoggedInUser;
+#endif
 
         var parameters = new DialogParameters
          {
@@ -266,11 +260,8 @@ FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Co
 
     async Task LoadData()
     {
-        var start = SelectedDateRange.Start;
-        var end = SelectedDateRange.End;
-
-        var bd = int.Parse($"{start?.Year}{(start?.Month > 9 ? string.Empty : $"0")}{start?.Month}{(start?.Day > 9 ? string.Empty : $"0")}{start?.Day}");
-        var ed = int.Parse($"{end?.Year}{(end?.Month > 9 ? string.Empty : $"0")}{end?.Month}{(end?.Day > 9 ? string.Empty : $"0")}{end?.Day}");
+        var bd = int.Parse($"{FilterStartDate?.Year}{(FilterStartDate?.Month > 9 ? string.Empty : $"0")}{FilterStartDate?.Month}{(FilterStartDate?.Day > 9 ? string.Empty : $"0")}{FilterStartDate?.Day}");
+        var ed = int.Parse($"{FilterEndDate?.Year}{(FilterEndDate?.Month > 9 ? string.Empty : $"0")}{FilterEndDate?.Month}{(FilterEndDate?.Day > 9 ? string.Empty : $"0")}{FilterEndDate?.Day}");
 
         var func = AzureFunctions.GetAdds.GetName();
         var response = await Http.GetStringAsync($"{func}/{bd}/{ed}");

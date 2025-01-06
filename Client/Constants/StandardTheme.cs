@@ -25,9 +25,9 @@ namespace Client.Constants
         };
         private static readonly PaletteLight lightThemePallete = new()
         {
-            DrawerBackground = "#ffffffcc",
-            Surface = "#ffffffcc", // MudDialog uses this as a background
-            AppbarBackground = "#594ae2cc",
+            //DrawerBackground = "#ffffffcc",
+            //Surface = "#ffffffcc", // MudDialog uses this as a background
+            //AppbarBackground = "#594ae2cc",
 
             Primary = AppColors.Tuna,
             Secondary = AppColors.Orange,
@@ -49,9 +49,9 @@ namespace Client.Constants
 
         private static readonly PaletteDark darkThemePallete = new()
         {
-            DrawerBackground = "#27272fcc",
-            Surface = "#373740cc",
-            AppbarBackground = "#27272fcc",
+            //DrawerBackground = "#27272fcc",
+            //Surface = "#373740cc",
+            //AppbarBackground = "#27272fcc",
 
             Primary = AppColors.White,
             Secondary = AppColors.Orange,

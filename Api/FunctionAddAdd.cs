@@ -26,11 +26,13 @@ namespace Api
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
+#if !DEBUG
             var user = Authentication.StaticWebAppsApiAuth.Parse(req);
             if (!user.IsInRole(AuthRoles.Admin.GetDescription()))
             {
                 return new StatusCodeResult(StatusCodes.Status401Unauthorized);
             }
+#endif
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var parameters = JsonConvert.DeserializeObject<Add>(requestBody);
@@ -74,7 +76,8 @@ namespace Api
                     command.Parameters.Add(new SqlParameter("@Id", SqlDbType.Int) { Value = add.Id });
                     command.Parameters.Add(new SqlParameter("@AddPlacementZone", SqlDbType.NVarChar) { Value = add.AddPlacementZone });
                     command.Parameters.Add(new SqlParameter("@LabelText", SqlDbType.NVarChar) { Value = add.LabelText });
-                    command.Parameters.Add(new SqlParameter("@ImageUrl", SqlDbType.NVarChar) { Value = add.ImageUrl });
+                    command.Parameters.Add(new SqlParameter("@ImageFileName", SqlDbType.NVarChar) { Value = add.ImageFileName });
+                    command.Parameters.Add(new SqlParameter("@ImageBlobName", SqlDbType.NVarChar) { Value = add.ImageBlobName });
                     command.Parameters.Add(new SqlParameter("@RedirectUrl", SqlDbType.NVarChar) { Value = add.RedirectUrl });
                     command.Parameters.Add(new SqlParameter("@ActiveFrom", SqlDbType.Date) { Value = add.ActiveFrom });
                     command.Parameters.Add(new SqlParameter("@ActiveUntil", SqlDbType.Date) { Value = add.ActiveUntil });
@@ -82,7 +85,6 @@ namespace Api
                     command.Parameters.Add(new SqlParameter("@IsPublished", SqlDbType.Bit) { Value = add.IsPublished });
                     command.Parameters.Add(new SqlParameter("@DisplayOrder", SqlDbType.Int) { Value = add.DisplayOrder });
                     command.Parameters.Add(new SqlParameter("@User", SqlDbType.NVarChar) { Value = add.User });
-
 
                     return await command.ExecuteNonQueryAsync() > 0;
                 }

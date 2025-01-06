@@ -28,11 +28,13 @@ namespace Api
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
+#if !DEBUG
             var user = Authentication.StaticWebAppsApiAuth.Parse(req);
             if (!user.IsInRole(AuthRoles.Admin.GetDescription()))
             {
                 return new StatusCodeResult(StatusCodes.Status401Unauthorized);
             }
+#endif
 
             return new OkObjectResult(result);
         }
