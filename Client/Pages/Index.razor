@@ -16,45 +16,6 @@
 
 @implements IDisposable
 
-<style>
-    .bg-blur {
-    backdrop-filter: blur(10px);
-    }
-
-    .always-on-top {
-    position: fixed; /* Sticks to the viewport */
-    top: 50px; /* Distance from the top of the viewport */
-    left: 10px; /* Distance from the left of the viewport */
-    padding: 10px; /* Optional styling */
-    }
-
-    .floating-button-add {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease-in-out;
-    }
-
-    .floating-button-add:active {
-    transform: scale(0.9);
-    }
-
-    .floating-button-filter {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    z-index: 1000;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease-in-out;
-    }
-
-    .floating-button-filter:active {
-    transform: scale(0.9);
-    }
-</style>
-
 <div class="always-on-top">
     <MudToolBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
         <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate OnKeyDown="@(e => { if (e.Key == "Enter") { ApplyFilter(); } })"
