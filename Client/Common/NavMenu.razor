@@ -1,0 +1,22 @@
+﻿<MudDrawer Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")" @bind-Open="SideBarOpen" Fixed Elevation="0"
+           Variant="@DrawerVariant.Responsive" OpenMiniOnHover>
+
+    <MudDrawerHeader>
+        <MudTooltip Text="Hide Menu" Arrow>
+            <MudFab IconColor="MudBlazor.Color.Error" Size="MudBlazor.Size.Small" IconSize="MudBlazor.Size.Small" StartIcon="@Icons.Material.Filled.Close" OnClick="async () => await OnSideBarToggled.InvokeAsync()" />
+        </MudTooltip>
+    </MudDrawerHeader>
+
+    <MudNavMenu>
+        <MudNavLink Href="/" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.ViewList">Bonuses</MudNavLink>
+        <MudNavLink Href="/changelogs" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.ChangeHistory">Changelogs</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+
+@code {
+    [Parameter]
+    public EventCallback OnSideBarToggled { get; set; }
+
+    [Parameter]
+    public bool SideBarOpen { get; set; }
+}

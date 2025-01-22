@@ -8,6 +8,7 @@
 
 <MudLayout Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
     <AppBar OnSideBarToggled="ToggleSideBar" SideBarOpen="_sideBarOpen" OnThemeToggled="ToggleTheme" />
+     <NavMenu OnSideBarToggled="ToggleSideBar" SideBarOpen="_sideBarOpen" />
     <MudMainContent>
         <CascadingValue Value="State">
             @Body

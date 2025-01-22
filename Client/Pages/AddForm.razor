@@ -13,72 +13,48 @@
 
 <MudDialog>
     <DialogContent>
-        <MudGrid>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="@SelectedItem.LabelText" Label="Text" Variant="Variant.Outlined"></MudTextField>
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="Redirect url" Variant="Variant.Outlined"></MudTextField>
-            </MudItem>
-            <MudItem xs="12">
-                <div class="d-flex justify-center">
-                    <MudStack>
-                        <MudImage hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Height="200" Width="400" Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25" Class="rounded-lg" />
-                        <MudStack Row>
-                            @if (SaveInProgress)
-                            {
-                                <MudProgressCircular Indeterminate Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" />
-                                <MudAlert NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">Uploading...</MudAlert>
-                            }
-                            else
-                            {
-                                <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png, .apng, .jpg, .jpeg, .jpe, .jif, .jfif, .svg, .webp, .bmp, .tif, .tiff, .avif, .xbm" Required>
-                                    <ActivatorContent>
-                                        <MudIconButton Color="MudBlazor.Color.Info"
-                                        Icon="@Icons.Material.Filled.PhotoCamera">
-                                        </MudIconButton>
-                                    </ActivatorContent>
-                                </MudFileUpload>
-                                <MudAlert hidden="@(string.IsNullOrEmpty(@SelectedItem.ImageFileName))" NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">@SelectedItem.ImageFileName</MudAlert>
-                            }
-                        </MudStack>
-                    </MudStack>
-                </div>
-            </MudItem>
-            <MudItem xs="12">
+        <MudStack Row Spacing="1" Wrap="Wrap.NoWrap" Justify="Justify.FlexStart">
+            <MudNumericField Margin="Margin.Dense" Required Min="1" Step="1" T="int" @bind-Value="@SelectedItem.DisplayOrder" Label="Rank" Immediate Style="width:50px" />
+            <MudSwitch @bind-Value="@SelectedItem.IsActive" ThumbIcon="@(SelectedItem.IsActive ? @Icons.Material.Filled.ToggleOn : @Icons.Material.Filled.ToggleOff)" ThumbIconColor="@(SelectedItem.IsActive ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
+            <MudSwitch @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Public : @Icons.Material.Filled.PublicOff)" ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
+        </MudStack>
+
+        <div class="d-flex justify-center">
+            <MudStack>
+                <MudImage hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Height="200" Width="400" Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25" Class="rounded-lg" />
                 <MudStack Row>
-                    <MudDatePicker Label="From" @bind-Date="@SelectedItem.ActiveFrom" Style="text-decoration: none;width:fit-content;" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" Required RequiredError="An start-date is required for expiry or retention period." />
-                    <MudDatePicker Label="Until" @bind-Date="@SelectedItem.ActiveUntil" Style="text-decoration: none;width:fit-content;" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" Required RequiredError="An end-date is required for expiry or retention period." />
+                    @if (SaveInProgress)
+                    {
+                        <MudProgressCircular Indeterminate Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" />
+                        <MudAlert NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">Uploading...</MudAlert>
+                    }
+                    else
+                    {
+                        <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png, .apng, .jpg, .jpeg, .jpe, .jif, .jfif, .svg, .webp, .bmp, .tif, .tiff, .avif, .xbm" Required>
+                            <ActivatorContent>
+                                <MudIconButton Color="MudBlazor.Color.Info"
+                                               Icon="@Icons.Material.Filled.PhotoCamera">
+                                </MudIconButton>
+                            </ActivatorContent>
+                        </MudFileUpload>
+                        <MudAlert hidden="@(string.IsNullOrEmpty(@SelectedItem.ImageFileName))" NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">@SelectedItem.ImageFileName</MudAlert>
+                    }
                 </MudStack>
-            </MudItem>
-            <MudItem xs="12">
-                <MudStack Row>
-                    <MudRadioGroup @bind-Value="@SelectedItem.AddPlacementZone" Required RequiredError="Please select a placement zone on the UI for the image to display.">
-                        @foreach (var z in FixedItems.ImagePlacementZones)
-                        {
-                            <MudRadio Value="@z">@z</MudRadio>
-                        }
-                    </MudRadioGroup>
-                </MudStack>
-            </MudItem>
-            <MudItem xs="12">
-                <MudStack Row>
-                    <MudNumericField Min="1" Step="1" Adornment="Adornment.Start" Variant="MudBlazor.Variant.Outlined" @bind-Value="@SelectedItem.DisplayOrder" Label="Display order (rank)" Immediate />
-                    <MudSwitch @bind-Value="@SelectedItem.IsActive" ThumbIcon="@(SelectedItem.IsActive ? @Icons.Material.Filled.Image : @Icons.Material.Filled.HideImage)" ThumbIconColor="@(SelectedItem.IsActive ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Is active? {(SelectedItem.IsActive ? "yes" : "no")}")</MudSwitch>
-                    <MudSwitch @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Publish : @Icons.Material.Filled.Checklist)" ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Is published? {(SelectedItem.IsPublished ? "yes" : "no")}")</MudSwitch>
-                </MudStack>
-            </MudItem>
-        </MudGrid>
+            </MudStack>
+        </div>
+        <MudTextField @bind-Value="TextValue" Label="Text" Required Variant="Variant.Text" Margin="Margin.Dense" />
+        <MudTextField Value="@SelectedItem.RedirectUrl" Label="Redirect url" Required AutoFocus Margin="Margin.Dense" />
+
     </DialogContent>
     <DialogActions>
-        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Reset" Disabled="@SaveInProgress">Reset</MudButton>
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Restore" Color="MudBlazor.Color.Info" Style="@Styles.StandardButtonNoColorStyle" OnClick="Reset" Disabled="@SaveInProgress" />
         <MudSpacer />
         @if (SelectedItem.Id == -1)
         {
-            <MudSwitch @bind-Value="@DoNotCloseForm" ThumbIcon="@(DoNotCloseForm ? @Icons.Material.Filled.OpenInNew : @Icons.Material.Filled.OpenInNewOff)" ThumbIconColor="@(DoNotCloseForm ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Keep form open? {(DoNotCloseForm ? "yes" : "no")}")</MudSwitch>
+            <MudSwitch Size="MudBlazor.Size.Small" @bind-Value="@DoNotCloseForm" ThumbIcon="@(DoNotCloseForm ? @Icons.Material.Filled.OpenInNew : @Icons.Material.Filled.OpenInNewOff)" ThumbIconColor="@(DoNotCloseForm ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Keep open? {(DoNotCloseForm ? "yes" : "no")}")</MudSwitch>
         }
-        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Done" Disabled="@SaveInProgress">@(SaveInProgress ? "Saving..." : "Done")</MudButton>
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Save" Color="MudBlazor.Color.Info" Style="@Styles.StandardButtonNoColorStyle"  OnClick="Done" Disabled="@SaveInProgress" />
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Cancel" Color="MudBlazor.Color.Error" Style="@Styles.StandardButtonNoColorStyle" OnClick="Cancel" />
     </DialogActions>
 </MudDialog>
 
@@ -93,9 +69,11 @@
         options.ShowCloseIcon = true;
     };
 
+    public string TextValue { get; set; }
+
     IBrowserFile ImageFile = null!;
     Add BackupCopyItem { get; set; } = new();
-   
+
     string SelectedImageSrc = string.Empty;
     string LoggedInUser = string.Empty;
     bool SaveInProgress = false; bool DoNotCloseForm = false;
@@ -222,7 +200,7 @@
         if (NumberOfNewItemsSaved > 0) { MudDialog.Close(DialogResult.Ok(true)); }
 
         //on cancellation and closing of the form
-        Reset(); MudDialog.Cancel(); 
+        Reset(); MudDialog.Close(DialogResult.Cancel());
     }
 
     void Reset()
@@ -238,11 +216,11 @@
     async Task<bool> SaveDataAsync(CancellationToken token)
     {
         /*
-         * do not check whether image is stored or not 
+         * do not check whether image is stored or not
          * as sometimes user would want to edit other information than changing the image
          * in this case ImageFile will be null
          */
-        await StoreImage(token); 
+        await StoreImage(token);
         var func = AzureFunctions.AddAdd.GetName();
         var response = await Http.PostAsJsonAsync(func, SelectedItem, token);
         return response.IsSuccessStatusCode;

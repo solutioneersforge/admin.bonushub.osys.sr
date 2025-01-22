@@ -14,71 +14,91 @@
 @using Data.AzureFunctionResponse
 @using Data.Models
 
-<MudToolBar>
-   <MudDatePicker Variant="Variant.Text" Margin="Margin.Dense" Label="From" @bind-Date="@FilterStartDate" Style="text-decoration: none;width:fit-content;" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog"  />
-        <MudDatePicker Variant="Variant.Text" Margin="Margin.Dense"  Label="Until" @bind-Date="@FilterEndDate" Style="text-decoration: none;width:fit-content;" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Dialog" />
-        <MudTooltip Text="Reload" Arrow Placement="Placement.Bottom">
-            <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="LoadData" />
-        </MudTooltip>
-        <MudTooltip Text="Add new bonus" Arrow Placement="Placement.Bottom">
-            <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenForm(NewItem))" />
-        </MudTooltip>
-        <MudTooltip Text="Staging area" Arrow Placement="Placement.Bottom">
-            <MudIconButton Icon="@Icons.Material.Filled.Preview" OnClick="OpenTestSite" />
-        </MudTooltip>
-        <MudTooltip Text="Display changelogs" Arrow Placement="Placement.Bottom">
-            <MudIconButton Icon="@Icons.Material.Filled.History" OnClick="OpenChangeLogs" />
-        </MudTooltip>
-        <MudSpacer />
-        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate
-                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+@implements IDisposable
 
-</MudToolBar>
+<style>
+    .bg-blur {
+    backdrop-filter: blur(10px);
+    }
 
-<MudDataGrid @ref="@MudDataGridRef" Loading="@_loading" LoadingProgressColor="MudBlazor.Color.Info" Items="@Adds"
-             Filterable Dense Striped Bordered Hover Square Outlined Virtualize FixedHeader FixedFooter
-             QuickFilter="@_quickFilter"
-             FilterMode="DataGridFilterMode.ColumnFilterMenu" ColumnResizeMode="ResizeMode.Column">
-    <Columns>
-        <TemplateColumn CellClass="d-flex justify-start" StickyLeft>
-            <CellTemplate>
-                <MudTooltip Arrow Placement="Placement.Right" TooltipContent="@(GetTooltipText(context.Item))">
-                    <MudStack Row>
-                        <MudIconButton OnClick="@(() => OpenForm(context.Item))" Icon="@Icons.Material.Filled.Edit" />
-                        <MudIconButton OnClick="@(() => DeleteItem(context.Item))" Icon="@Icons.Material.Filled.Delete" Color="MudBlazor.Color.Error" />
-                    </MudStack>
-                </MudTooltip>
-            </CellTemplate>
-        </TemplateColumn>
-        <PropertyColumn Property="x => x.Id" Title="Id" />
-        <PropertyColumn Property="x => x.AddPlacementZone" Title="Add placement zone" />
-        <PropertyColumn Property="x => x.LabelText" Title="Text" />
-        <PropertyColumn Property="x => x.ImageFileName" Title="Image" CellStyle="text-overflow: hidden;white-space: nowrap;text-wrap: nowrap;" />
-        <PropertyColumn Property="x => x.RedirectUrl" Title="Redirect URL" CellStyle="text-overflow: hidden;white-space: nowrap;text-wrap: nowrap;" />
-        <PropertyColumn Property="x => x.ActiveFrom" Title="From" Format="dd MMM yyyy" />
-        <PropertyColumn Property="x => x.ActiveUntil" Title="Until" Format="dd MMM yyyy" />
-        <PropertyColumn Property="@(x => x.IsActive ? "Yes" : "No")" Title="Active?" />
-        <PropertyColumn Property="@(x => x.IsPublished ? "Yes" : "No")" Title="Published?" />
-        <PropertyColumn Property="x => x.DisplayOrder" Title="Display order" />
-        <PropertyColumn Property="x => x.DesktopClickCount" Title="Desktop click count" />
-        <PropertyColumn Property="x => x.MobileTapCount" Title="Mobile tap count" />
-        <TemplateColumn CellClass="d-flex justify-end" StickyRight>
-            <CellTemplate>
-                <MudTooltip Arrow TooltipContent="@(GetTooltipText(context.Item))">
-                    <MudStack Row>
-                        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Width="75" Height="25" Src="@context.Item.ImageBlobUrl"></MudImage>
-                        <MudIconButton Href="@context.Item.RedirectUrl" Target="_blank" Icon="@Icons.Material.Filled.Link" Size="MudBlazor.Size.Small" />
-                    </MudStack>
-                </MudTooltip>
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-    <PagerContent>
-        <MudDataGridPager T="Add" />
-    </PagerContent>
-</MudDataGrid>
+    .always-on-top {
+    position: fixed; /* Sticks to the viewport */
+    top: 50px; /* Distance from the top of the viewport */
+    left: 10px; /* Distance from the left of the viewport */
+    padding: 10px; /* Optional styling */
+    }
+
+    .floating-button-add {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+    }
+
+    .floating-button-add:active {
+    transform: scale(0.9);
+    }
+
+    .floating-button-filter {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    z-index: 1000;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+    }
+
+    .floating-button-filter:active {
+    transform: scale(0.9);
+    }
+</style>
+
+<div class="always-on-top">
+    <MudToolBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate OnKeyDown="@(e => { if (e.Key == "Enter") { ApplyFilter(); } })"
+        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+    </MudToolBar>
+</div>
+
+<div style="margin-top: 100px;">
+    <MudPaper Class="d-flex align-content-start flex-wrap flex-md-wrap gap-1" Elevation="0">
+        @foreach (var add in FilteredAdds)
+        {
+            <MudCard Square Style="width: 300px; height: 300px;">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudIcon Icon="@GetPlacementZoneIcon(add.AddPlacementZone)" />
+                        <MudText Typo="Typo.caption">@($"#{add.DisplayOrder}")</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIcon Color="@(add.IsActive ? MudBlazor.Color.Success : MudBlazor.Color.Error)" Icon="@(add.IsActive ? Icons.Material.Filled.ToggleOn : Icons.Material.Filled.ToggleOff)" />
+                        <MudIcon Color="@(add.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" Icon="@(add.IsPublished ? Icons.Material.Filled.Public : Icons.Material.Filled.PublicOff)" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardMedia Style="width: 300px; height: 200px;object-position:center;object-fit:scale-down" Image="@add.ImageBlobUrl" />
+                <MudCardContent>
+                    <MudText Typo="Typo.body2" Style="text-wrap: pretty;">@add.LabelText</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudIconButton Size="MudBlazor.Size.Small" Href="@add.RedirectUrl" Target="_blank" Icon="@Icons.Material.Filled.Launch" />
+                    <MudSpacer />
+                    <MudIconButton Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default" OnClick="@(() => OpenForm(add))" Icon="@Icons.Material.Filled.Edit" />
+                    <MudIconButton Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Error" OnClick="@(() => DeleteItem(add))" Icon="@Icons.Material.Filled.Delete" />
+                </MudCardActions>
+            </MudCard>
+        }
+    </MudPaper>
+</div>
+
+<MudFab StartIcon="@Icons.Material.Filled.Add" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
+        Class="floating-button-add" OnClick="@(() => OpenForm(NewItem))" />
+<MudFab StartIcon="@Icons.Material.Filled.FilterAlt" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
+        Class="floating-button-filter" OnClick="@(() => OpenDateRangePickerDialog())" />
 
 @code {
+    [CascadingParameter] public Client.States.States State { get; set; } = new();
     readonly Action<SnackbarOptions> config = (SnackbarOptions options) =>
      {
          options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
@@ -92,8 +112,14 @@
     bool _loading;
     string _searchString = string.Empty;
     string LoggedInUser = string.Empty;
-    Add NewItem = new Add { Id = -1, LabelText = string.Empty, RedirectUrl = string.Empty, ImageBlobName = string.Empty, ImageFileName = string.Empty, ImageAsBase64String = string.Empty, AddPlacementZone = "Top", IsActive = true, IsPublished = false, DisplayOrder = 1, ActiveFrom = DateTime.Now, ActiveUntil = DateTime.Now, DesktopClickCount = 0, MobileTapCount = 0 };
+    Add NewItem = new Add { Id = -1, LabelText = "", RedirectUrl = "", ImageBlobName = string.Empty, ImageFileName = string.Empty, ImageAsBase64String = string.Empty, AddPlacementZone = "Top", IsActive = true, IsPublished = false, DisplayOrder = 1, ActiveFrom = DateTime.Now, ActiveUntil = DateTime.Now, DesktopClickCount = 0, MobileTapCount = 0 };
     IEnumerable<Add> Adds = [];
+    IEnumerable<Add> FilteredAdds = [];
+
+    protected override void OnParametersSet() => State.OnThemeChanged += HandleEvent;
+    void IDisposable.Dispose() => State.OnThemeChanged -= HandleEvent;
+
+    async Task HandleEvent() => await Task.CompletedTask;
 
     protected override async Task OnInitializedAsync()
     {
@@ -101,25 +127,24 @@
         {
             SnackbarService.Clear();
 
-#if !DEBUG
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
+// #if !DEBUG
+//             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+//             var user = authState.User;
 
-            if (user.Identity == null || !user.Identity.IsAuthenticated)
-            {
-                NavigationManager.NavigateTo("/.auth/login/aad", true);
-                return;
-            }
+//             if (user.Identity == null || !user.Identity.IsAuthenticated)
+//             {
+//                 NavigationManager.NavigateTo("/.auth/login/aad", true);
+//                 return;
+//             }
 
-            if (user.Identity != null && user.Identity.IsAuthenticated)
-            {
-                LoggedInUser = user.Identity.Name;
-            }
-#endif
+//             if (user.Identity != null && user.Identity.IsAuthenticated)
+//             {
+//                 LoggedInUser = user.Identity.Name;
+//             }
+// #endif
 
             _loading = true;
             await LoadData();
-            await Task.CompletedTask;
         }
         catch (Exception ex)
         {
@@ -131,48 +156,27 @@
         }
     }
 
-    private Func<Add, bool> _quickFilter => x =>
+    string GetPlacementZoneIcon(string loc)
     {
-        if (string.IsNullOrWhiteSpace(_searchString))
-            return true;
-
-        if (x.AddPlacementZone.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        if (x.LabelText.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        if (x.RedirectUrl.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        if (x.ImageFileName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        if (x.DisplayOrder.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        return false;
-    };
-
-    RenderFragment GetTooltipText(Add item)
-    {
-        return AddContent(new MarkupString($"<p style='word-wrap: normal;padding: 0;text-align: left;overflow: hidden;'>Redirect url: {item.RedirectUrl}</p>"));
-
-        RenderFragment AddContent(MarkupString value) => builder =>
+        return loc switch
         {
-            builder.AddContent(1, value);
+            "Top" => @Icons.Material.Filled.VerticalAlignTop,
+            "Bottom" => @Icons.Material.Filled.VerticalAlignBottom,
+            "Middle" => @Icons.Material.Filled.VerticalAlignCenter,
+            "Right" => @Icons.Material.Filled.AlignHorizontalRight,
+            "Left" => @Icons.Material.Filled.AlignHorizontalLeft,
+            "Popup" => @Icons.Material.Filled.Window,
+            _ => @Icons.Material.Filled.DeviceUnknown,
         };
     }
 
-    async Task OpenLink(Add item) => await JSRuntime.InvokeVoidAsync("open", item.RedirectUrl, "_blank");
-
     async Task OpenForm(Add item)
     {
-#if DEBUG
+// #if DEBUG
     item.User = "Debugger";
-#else
-        item.User = LoggedInUser;
-#endif
+// #else
+//         item.User = LoggedInUser;
+// #endif
 
         var parameters = new DialogParameters
          {
@@ -181,14 +185,16 @@
 
         var options = new MudBlazor.DialogOptions()
             {
-                CloseButton = true,
                 CloseOnEscapeKey = false,
                 Position = MudBlazor.DialogPosition.Center,
                 MaxWidth = MaxWidth.Medium,
                 BackdropClick = false,
+                BackgroundClass = "bg-blur",
+                NoHeader = true,
             };
 
-        var result = await DialogService.Show<AddForm>($"Item: {item.LabelText}", parameters, options).Result;
+        var dialog = await DialogService.ShowAsync<AddForm>($"Item: {item.LabelText}", parameters, options);
+        var result = await dialog.Result;
         if (result is not null && !result.Canceled)
         {
             if (result.Data is true)
@@ -207,15 +213,14 @@
 
         var options = new MudBlazor.DialogOptions()
             {
-                CloseButton = true,
-                CloseOnEscapeKey = false,
                 Position = MudBlazor.DialogPosition.Center,
                 MaxWidth = MaxWidth.Small,
-                BackdropClick = false,
                 NoHeader = true,
+                BackgroundClass = "bg-blur"
             };
 
-        var result = await DialogService.Show<ConfirmationDialog>($"Item: {item.LabelText}", parameters, options).Result;
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>($"Item: {item.LabelText}", parameters, options);
+        var result = await dialog.Result;
         if (result is not null && !result.Canceled)
         {
             if (result.Data is true)
@@ -239,25 +244,6 @@
         }
     }
 
-    async Task OpenChangeLogs()
-    {
-        var options = new MudBlazor.DialogOptions()
-            {
-                CloseButton = true,
-                CloseOnEscapeKey = false,
-                Position = MudBlazor.DialogPosition.Center,
-                MaxWidth = MaxWidth.Large,
-                BackdropClick = false,
-            };
-
-        _ = await DialogService.Show<Changelogs>($"Changelogs", new DialogParameters { }, options).Result;
-    }
-
-    void OpenTestSite()
-    {
-        //todo: open staging area
-    }
-
     async Task LoadData()
     {
         var bd = int.Parse($"{FilterStartDate?.Year}{(FilterStartDate?.Month > 9 ? string.Empty : $"0")}{FilterStartDate?.Month}{(FilterStartDate?.Day > 9 ? string.Empty : $"0")}{FilterStartDate?.Day}");
@@ -268,6 +254,45 @@
 
         var data = JsonSerializer.Deserialize<AfrAdd>(response);
         Adds = data?.Value ?? [];
+        ApplyFilter();
+
+        // await Task.CompletedTask;
+    }
+
+    void ApplyFilter()
+    {
+        FilteredAdds = string.IsNullOrEmpty(_searchString)
+        ? Adds
+        : Adds.Where(x => x.LabelText.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+    }
+
+    async Task OpenDateRangePickerDialog()
+    {
+        var parameters = new DialogParameters
+         {
+             { nameof(FilterStartDate), FilterStartDate }, { nameof(FilterEndDate), FilterEndDate }
+         };
+
+        var options = new MudBlazor.DialogOptions()
+            {
+                Position = MudBlazor.DialogPosition.Center,
+                MaxWidth = MaxWidth.Small,
+                BackgroundClass = "bg-blur",
+                NoHeader = true,
+            };
+
+        var dialog = await DialogService.ShowAsync<DateRangePickerDialog>(string.Empty, parameters, options);
+        var result = await dialog.Result;
+        if (result is not null && !result.Canceled)
+        {
+            var data = result.Data as DateTime?[];
+            if (data is null || data.Length < 2 || !data[0].HasValue || !data[1].HasValue) return;
+
+            FilterStartDate = data[0] ?? FilterStartDate;
+            FilterEndDate = data[1] ?? FilterEndDate;
+
+            await LoadData();
+        }
     }
 }
 

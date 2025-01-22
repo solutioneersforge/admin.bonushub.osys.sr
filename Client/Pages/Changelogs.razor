@@ -1,4 +1,8 @@
-﻿@inject ISnackbar SnackbarService
+﻿@page "/changelogs"
+
+@attribute [Authorize(Roles = "admin")]
+
+@inject ISnackbar SnackbarService
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider

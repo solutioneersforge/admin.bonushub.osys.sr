@@ -1,6 +1,8 @@
 ﻿@inject ISnackbar SnackbarService
 @inject IDialogService DialogService
 
+
+
 <MudDialog>
     <DialogContent>
         <MudText>@Item.HeaderText</MudText>
@@ -8,8 +10,8 @@
     </DialogContent>
     <DialogActions>
         <MudSpacer />
-        <MudButton  EndIcon="@Item.CancelButtonIcon" Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Cancel">@Item.CancelButtonText</MudButton>
-        <MudButton EndIcon="@Item.SubmitButtonIcon" Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Submit">@Item.SubmitButtonText</MudButton>
+        <MudButton Color="MudBlazor.Color.Info" EndIcon="@Item.SubmitButtonIcon" Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Submit">@Item.SubmitButtonText</MudButton>
+        <MudButton Color="MudBlazor.Color.Error" EndIcon="@Item.CancelButtonIcon" Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Cancel">@Item.CancelButtonText</MudButton>
     </DialogActions>
 </MudDialog>
 
