@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="C:\Users\dines\.nuget\packages\psc.blazor.components.browserdetect\1.0.14\contentFiles\any\net6.0\psc_logo.ico" />
     <Content Remove="wwwroot\css\simple_audio_visualisation_style.css" />
     <Content Remove="wwwroot\js\simple_audio_visualisation.js" />
   </ItemGroup>
@@ -30,7 +31,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Azure.Functions.Authentication.WebAssembly" Version="1.0.1-preview" />
     <PackageReference Include="MudBlazor" Version="7.1.1" />
-    <PackageReference Include="PSC.Blazor.Components.BrowserDetect" Version="1.0.14" />
     <PackageReference Include="TextCopy" Version="6.2.1" />
   </ItemGroup>
 

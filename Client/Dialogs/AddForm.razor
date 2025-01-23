@@ -15,6 +15,8 @@
     <DialogContent>
         <MudStack Row Spacing="1" Wrap="Wrap.NoWrap" Justify="Justify.FlexStart">
             <MudNumericField Margin="Margin.Dense" Required Min="1" Step="1" T="int" @bind-Value="@SelectedItem.DisplayOrder" Label="Rank" Immediate Style="width:50px" />
+            <MudIconButton Icon="@HelperFunctions.GetPlacementZoneIcon(SelectedItem.AddPlacementZone)" Size="MudBlazor.Size.Small" OnClick="OpenPlacementZonePickerDialog" />
+            <MudIconButton Icon="@Icons.Material.Filled.DateRange" Size="MudBlazor.Size.Small" OnClick="OpenDateRangePickerDialog" />
             <MudSwitch @bind-Value="@SelectedItem.IsActive" ThumbIcon="@(SelectedItem.IsActive ? @Icons.Material.Filled.ToggleOn : @Icons.Material.Filled.ToggleOff)" ThumbIconColor="@(SelectedItem.IsActive ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
             <MudSwitch @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Public : @Icons.Material.Filled.PublicOff)" ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
         </MudStack>
@@ -42,19 +44,19 @@
                 </MudStack>
             </MudStack>
         </div>
-        <MudTextField @bind-Value="TextValue" Label="Text" Required Variant="Variant.Text" Margin="Margin.Dense" />
-        <MudTextField Value="@SelectedItem.RedirectUrl" Label="Redirect url" Required AutoFocus Margin="Margin.Dense" />
+        <MudTextField @bind-Value="@SelectedItem.LabelText" Label="Text" Required Variant="Variant.Text" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="Redirect url" Required AutoFocus Margin="Margin.Dense" />
 
     </DialogContent>
     <DialogActions>
-        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Restore" Color="MudBlazor.Color.Info" Style="@Styles.StandardButtonNoColorStyle" OnClick="Reset" Disabled="@SaveInProgress" />
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Restore" Color="MudBlazor.Color.Info" OnClick="Reset" Disabled="@SaveInProgress" />
         <MudSpacer />
         @if (SelectedItem.Id == -1)
         {
             <MudSwitch Size="MudBlazor.Size.Small" @bind-Value="@DoNotCloseForm" ThumbIcon="@(DoNotCloseForm ? @Icons.Material.Filled.OpenInNew : @Icons.Material.Filled.OpenInNewOff)" ThumbIconColor="@(DoNotCloseForm ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Keep open? {(DoNotCloseForm ? "yes" : "no")}")</MudSwitch>
         }
-        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Save" Color="MudBlazor.Color.Info" Style="@Styles.StandardButtonNoColorStyle"  OnClick="Done" Disabled="@SaveInProgress" />
-        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Cancel" Color="MudBlazor.Color.Error" Style="@Styles.StandardButtonNoColorStyle" OnClick="Cancel" />
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Save" Color="MudBlazor.Color.Info"  OnClick="Done" Disabled="@SaveInProgress" />
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Cancel" Color="MudBlazor.Color.Error" OnClick="Cancel" />
     </DialogActions>
 </MudDialog>
 
@@ -68,8 +70,6 @@
         options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
         options.ShowCloseIcon = true;
     };
-
-    public string TextValue { get; set; }
 
     IBrowserFile ImageFile = null!;
     Add BackupCopyItem { get; set; } = new();
@@ -206,11 +206,64 @@
     void Reset()
     {
         SelectedImageSrc = string.Empty; SelectedItem = BackupCopyItem;
+        SelectedItem = new Add { Id = BackupCopyItem.Id, IsPublished = BackupCopyItem.IsPublished, ImageBlobName = BackupCopyItem.ImageBlobName, ImageBlobUrl = BackupCopyItem.ImageBlobUrl, ActiveFrom = BackupCopyItem.ActiveFrom, ActiveUntil = BackupCopyItem.ActiveUntil, AddPlacementZone = BackupCopyItem.AddPlacementZone, IsActive = BackupCopyItem.IsActive, DisplayOrder = BackupCopyItem.DisplayOrder, ImageFileName = BackupCopyItem.ImageFileName, LabelText = BackupCopyItem.LabelText, RedirectUrl = BackupCopyItem.RedirectUrl };
         if (SelectedItem.Id > 0)
         {
             SelectedImageSrc = BackupCopyItem.ImageBlobUrl;
         }
         StateHasChanged();
+    }
+
+    async Task OpenDateRangePickerDialog()
+    {
+        var parameters = new DialogParameters
+         {
+              { "StartDate", SelectedItem.ActiveFrom }, { "EndDate", SelectedItem.ActiveUntil }
+         };
+
+        var options = new MudBlazor.DialogOptions()
+            {
+                Position = MudBlazor.DialogPosition.Center,
+                MaxWidth = MaxWidth.Small,
+                BackgroundClass = "bg-blur",
+                NoHeader = true,
+            };
+
+        var dialog = await DialogService.ShowAsync<DateRangePickerDialog>(string.Empty, parameters, options);
+        var result = await dialog.Result;
+        if (result is not null && !result.Canceled)
+        {
+            var data = result.Data as DateTime?[];
+            if (data is null || data.Length < 2 || !data[0].HasValue || !data[1].HasValue) return;
+
+            SelectedItem.ActiveFrom = data[0] ?? SelectedItem.ActiveFrom;
+            SelectedItem.ActiveUntil = data[1] ?? SelectedItem.ActiveUntil;
+        }
+    }
+
+    async Task OpenPlacementZonePickerDialog()
+    {
+        var parameters = new DialogParameters
+         {
+              { "PlacementZone", SelectedItem.AddPlacementZone }
+         };
+
+        var options = new MudBlazor.DialogOptions()
+            {
+                Position = MudBlazor.DialogPosition.Center,
+                MaxWidth = MaxWidth.Small,
+                BackgroundClass = "bg-blur",
+                NoHeader = true,
+            };
+
+        var dialog = await DialogService.ShowAsync<PlacementZonePickerDialog>(string.Empty, parameters, options);
+        var result = await dialog.Result;
+        if (result is not null && !result.Canceled)
+        {
+            var data = result.Data as string;
+
+            SelectedItem.AddPlacementZone = data;
+        }
     }
 
     async Task<bool> SaveDataAsync(CancellationToken token)

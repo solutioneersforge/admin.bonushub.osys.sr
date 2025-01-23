@@ -16,21 +16,33 @@
 
 @implements IDisposable
 
-<div class="always-on-top">
-    <MudToolBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
-        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate OnKeyDown="@(e => { if (e.Key == "Enter") { ApplyFilter(); } })"
-        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
-    </MudToolBar>
-</div>
+@if (_loading)
+{
+    <div style="position:absolute; top:30vh; width:100%; text-align:center">
+        <div style="display:flex; gap:10px; justify-content:center; align-items:center">
+            <div class="spinner-border"></div>
+            Loading...
+        </div>
+    </div>
+}
 
-<div style="margin-top: 100px;">
-    <MudPaper Class="d-flex align-content-start flex-wrap flex-md-wrap gap-1" Elevation="0">
+@if (!_loading)
+{
+    <MudToolBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}; position: fixed;top: 50px;left: 10px;padding: 10px;")">
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate OnKeyDown="@(e => { if (e.Key == "Enter") { ApplyFilter(); } })"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+
+        <MudFab StartIcon="@Icons.Material.Filled.FilterAlt" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
+                Class="floating-button-filter" OnClick="@(() => OpenDateRangePickerDialog())" />
+    </MudToolBar>
+
+    <MudPaper Class="d-flex align-content-start flex-wrap flex-md-wrap gap-1" Style="margin:40px 0 0 10px" Elevation="0">
         @foreach (var add in FilteredAdds)
         {
-            <MudCard Square Style="width: 300px; height: 300px;">
+            <MudCard Square Style="width: 350px; height: 300px;margin:5px">
                 <MudCardHeader>
                     <CardHeaderContent>
-                        <MudIcon Icon="@GetPlacementZoneIcon(add.AddPlacementZone)" />
+                        <MudIcon Icon="@HelperFunctions.GetPlacementZoneIcon(add.AddPlacementZone)" />
                         <MudText Typo="Typo.caption">@($"#{add.DisplayOrder}")</MudText>
                     </CardHeaderContent>
                     <CardHeaderActions>
@@ -51,12 +63,11 @@
             </MudCard>
         }
     </MudPaper>
-</div>
 
-<MudFab StartIcon="@Icons.Material.Filled.Add" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
-        Class="floating-button-add" OnClick="@(() => OpenForm(NewItem))" />
-<MudFab StartIcon="@Icons.Material.Filled.FilterAlt" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
-        Class="floating-button-filter" OnClick="@(() => OpenDateRangePickerDialog())" />
+    <MudFab StartIcon="@Icons.Material.Filled.Add" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
+            OnClick="@(() => OpenForm(NewItem))"
+            Style="position: fixed;bottom: 20px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />
+}
 
 @code {
     [CascadingParameter] public Client.States.States State { get; set; } = new();
@@ -88,21 +99,21 @@
         {
             SnackbarService.Clear();
 
-// #if !DEBUG
-//             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-//             var user = authState.User;
+#if !DEBUG
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
 
-//             if (user.Identity == null || !user.Identity.IsAuthenticated)
-//             {
-//                 NavigationManager.NavigateTo("/.auth/login/aad", true);
-//                 return;
-//             }
+            if (user.Identity == null || !user.Identity.IsAuthenticated)
+            {
+                NavigationManager.NavigateTo("/.auth/login/aad", true);
+                return;
+            }
 
-//             if (user.Identity != null && user.Identity.IsAuthenticated)
-//             {
-//                 LoggedInUser = user.Identity.Name;
-//             }
-// #endif
+            if (user.Identity != null && user.Identity.IsAuthenticated)
+            {
+                LoggedInUser = user.Identity.Name;
+            }
+#endif
 
             _loading = true;
             await LoadData();
@@ -117,31 +128,21 @@
         }
     }
 
-    string GetPlacementZoneIcon(string loc)
-    {
-        return loc switch
-        {
-            "Top" => @Icons.Material.Filled.VerticalAlignTop,
-            "Bottom" => @Icons.Material.Filled.VerticalAlignBottom,
-            "Middle" => @Icons.Material.Filled.VerticalAlignCenter,
-            "Right" => @Icons.Material.Filled.AlignHorizontalRight,
-            "Left" => @Icons.Material.Filled.AlignHorizontalLeft,
-            "Popup" => @Icons.Material.Filled.Window,
-            _ => @Icons.Material.Filled.DeviceUnknown,
-        };
-    }
+   
 
     async Task OpenForm(Add item)
     {
-// #if DEBUG
+#if DEBUG
     item.User = "Debugger";
-// #else
-//         item.User = LoggedInUser;
-// #endif
+#else
+        item.User = LoggedInUser;
+#endif
+
+        var itemCopy = new Add { Id = item.Id, IsPublished = item.IsPublished, ImageBlobName = item.ImageBlobName, ImageBlobUrl = item.ImageBlobUrl, ActiveFrom = item.ActiveFrom, ActiveUntil = item.ActiveUntil, AddPlacementZone = item.AddPlacementZone, IsActive = item.IsActive, DisplayOrder = item.DisplayOrder, ImageFileName = item.ImageFileName, LabelText = item.LabelText, RedirectUrl = item.RedirectUrl };
 
         var parameters = new DialogParameters
          {
-             { "SelectedItem", item },
+             { "SelectedItem", itemCopy },
          };
 
         var options = new MudBlazor.DialogOptions()
@@ -161,6 +162,7 @@
             if (result.Data is true)
             {
                 await LoadData();
+                return;
             }
         }
     }
@@ -231,7 +233,7 @@
     {
         var parameters = new DialogParameters
          {
-             { nameof(FilterStartDate), FilterStartDate }, { nameof(FilterEndDate), FilterEndDate }
+             { "StartDate", FilterStartDate }, { "EndDate", FilterEndDate }
          };
 
         var options = new MudBlazor.DialogOptions()

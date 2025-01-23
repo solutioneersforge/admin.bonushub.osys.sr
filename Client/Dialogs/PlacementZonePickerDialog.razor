@@ -1,0 +1,35 @@
+﻿@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<MudDialog>
+    <DialogContent>
+        <MudRadioGroup @bind-Value="PlacementZone" >
+            @foreach (var zone in PlacementZones)
+            {
+                <MudRadio Dense Ripple UncheckedColor="MudBlazor.Color.Default" Value="@zone" Color="MudBlazor.Color.Info" Size="MudBlazor.Size.Small">@zone</MudRadio>
+            }
+        </MudRadioGroup>
+    </DialogContent>
+    <DialogActions>
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Done" Color="MudBlazor.Color.Info" Style="@Styles.StandardButtonNoColorStyle" OnClick="Done" />
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Cancel" Color="MudBlazor.Color.Error" Style="@Styles.StandardButtonNoColorStyle" OnClick="Cancel" />
+    </DialogActions>
+</MudDialog>
+
+@code
+{
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string PlacementZone { get; set; } = string.Empty;
+
+    IEnumerable<string> PlacementZones = Enum.GetValues(typeof(PlacementZone))
+      .Cast<PlacementZone>()
+      .Select(v => v.ToString())
+      .ToList();    
+
+    void Done() => MudDialog.Close(DialogResult.Ok(PlacementZone));
+    void Cancel() => MudDialog.Cancel();
+}
+

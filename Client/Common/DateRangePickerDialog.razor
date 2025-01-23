@@ -5,17 +5,17 @@
 <MudDialog>
     <DialogContent>
         <MudTabs Style="@Styles.StandardTabsStyle">
-            <MudTabPanel Text="@($"From {FilterStartDate:dd MMM yyyy}")" Style="@Styles.StandardTabsStyle">
-                <MudDatePicker Color="MudBlazor.Color.Default"  Variant="Variant.Text" OpenTo="OpenTo.Date" Margin="Margin.Dense" DateChanged="OnStartDateChanged" Editable ImmediateText Required TitleDateFormat="dd MMM yyyy" Label="From" ShowWeekNumbers Square Date="@FilterStartDate" Style="@Styles.StandardDateRangePickerStyle" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Static" />
+            <MudTabPanel Text="@($"From {StartDate:dd MMM yyyy}")" Style="@Styles.StandardTabsStyle">
+                <MudDatePicker Color="MudBlazor.Color.Default"  Variant="Variant.Text" OpenTo="OpenTo.Date" Margin="Margin.Dense" DateChanged="OnStartDateChanged" Editable ImmediateText Required TitleDateFormat="dd MMM yyyy" Label="From" ShowWeekNumbers Square Date="@StartDate" Style="@Styles.StandardDateRangePickerStyle" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Static" />
             </MudTabPanel>
-            <MudTabPanel Text="@($"Until {FilterEndDate:dd MMM yyyy}")" Style="@Styles.StandardTabsStyle">
-                <MudDatePicker Color="MudBlazor.Color.Default"  Variant="Variant.Text" OpenTo="OpenTo.Date" Margin="Margin.Dense" DateChanged="OnEndDateChanged" Editable ImmediateText Required TitleDateFormat="dd MMM yyyy" Label="Until" ShowWeekNumbers Square Date="@FilterEndDate" Style="@Styles.StandardDateRangePickerStyle" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Static" />
+            <MudTabPanel Text="@($"Until {EndDate:dd MMM yyyy}")" Style="@Styles.StandardTabsStyle">
+                <MudDatePicker Color="MudBlazor.Color.Default"  Variant="Variant.Text" OpenTo="OpenTo.Date" Margin="Margin.Dense" DateChanged="OnEndDateChanged" Editable ImmediateText Required TitleDateFormat="dd MMM yyyy" Label="Until" ShowWeekNumbers Square Date="@EndDate" Style="@Styles.StandardDateRangePickerStyle" ShowToolbar="false" DateFormat="dd MMM yyyy" FirstDayOfWeek="DayOfWeek.Monday" PickerVariant="PickerVariant.Static" />
             </MudTabPanel>
         </MudTabs>
     </DialogContent>
     <DialogActions>
-        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Done" Color="MudBlazor.Color.Info" Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Done" />
-        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Cancel" Color="MudBlazor.Color.Error" Style="@Styles.StandardButtonNoColorStyle" Variant="MudBlazor.Variant.Filled" OnClick="Cancel" />
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Done" Color="MudBlazor.Color.Info" Style="@Styles.StandardButtonNoColorStyle" OnClick="Done" />
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Cancel" Color="MudBlazor.Color.Error" Style="@Styles.StandardButtonNoColorStyle" OnClick="Cancel" />
     </DialogActions>
 </MudDialog>
 
@@ -24,17 +24,15 @@
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
-    public DateTime? FilterStartDate { get; set; }
+    public DateTime? StartDate { get; set; }
 
     [Parameter]
-    public DateTime? FilterEndDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
-    int ActiveTabIndex = 0;
+    void OnStartDateChanged(DateTime? dt) => StartDate = dt;
+    void OnEndDateChanged(DateTime? dt) => EndDate = dt;
 
-    void OnStartDateChanged(DateTime? dt) => FilterStartDate = dt;
-    void OnEndDateChanged(DateTime? dt) => FilterEndDate = dt;
-
-    void Done() => MudDialog.Close(DialogResult.Ok(new DateTime?[] { FilterStartDate, FilterEndDate }));
+    void Done() => MudDialog.Close(DialogResult.Ok(new DateTime?[] { StartDate, EndDate }));
     void Cancel() => MudDialog.Cancel();
 }
 
