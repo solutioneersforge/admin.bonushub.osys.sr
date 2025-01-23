@@ -1,5 +1,6 @@
 ﻿@page "/"
 
+@attribute [Authorize(Roles = "admin")]
 
 @inject ISnackbar SnackbarService
 @inject IDialogService DialogService
