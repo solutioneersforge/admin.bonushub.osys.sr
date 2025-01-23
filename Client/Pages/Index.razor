@@ -1,6 +1,5 @@
 ﻿@page "/"
 
-@attribute [Authorize(Roles = "admin")]
 
 @inject ISnackbar SnackbarService
 @inject IDialogService DialogService
@@ -31,9 +30,6 @@
     <MudToolBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}; position: fixed;top: 50px;left: 10px;padding: 10px;")">
         <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate OnKeyDown="@(e => { if (e.Key == "Enter") { ApplyFilter(); } })"
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
-
-        <MudFab StartIcon="@Icons.Material.Filled.FilterAlt" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
-                Class="floating-button-filter" OnClick="@(() => OpenDateRangePickerDialog())" />
     </MudToolBar>
 
     <MudPaper Class="d-flex align-content-start flex-wrap flex-md-wrap gap-1" Style="margin:40px 0 0 10px" Elevation="0">
@@ -63,6 +59,10 @@
             </MudCard>
         }
     </MudPaper>
+
+     <MudFab StartIcon="@Icons.Material.Filled.FilterAlt" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
+                Class="floating-button-filter" OnClick="@(() => OpenDateRangePickerDialog())"
+            Style="position: fixed;bottom: 80px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />
 
     <MudFab StartIcon="@Icons.Material.Filled.Add" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
             OnClick="@(() => OpenForm(NewItem))"
