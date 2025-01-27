@@ -139,7 +139,7 @@
         item.User = LoggedInUser;
 #endif
 
-        var itemCopy = new Add { Id = item.Id, IsPublished = item.IsPublished, ImageBlobName = item.ImageBlobName, ImageBlobUrl = item.ImageBlobUrl, ActiveFrom = item.ActiveFrom, ActiveUntil = item.ActiveUntil, AddPlacementZone = item.AddPlacementZone, IsActive = item.IsActive, DisplayOrder = item.DisplayOrder, ImageFileName = item.ImageFileName, LabelText = item.LabelText, RedirectUrl = item.RedirectUrl };
+        var itemCopy = new Add { Id = item.Id, IsPublished = item.IsPublished, ImageBlobName = item.ImageBlobName, ImageBlobUrl = item.ImageBlobUrl, ActiveFrom = item.ActiveFrom, ActiveUntil = item.ActiveUntil, AddPlacementZone = item.AddPlacementZone, IsActive = item.IsActive, DisplayOrder = item.DisplayOrder, ImageFileName = item.ImageFileName, LabelText = item.LabelText, RedirectUrl = item.RedirectUrl, User = LoggedInUser };
 
         var parameters = new DialogParameters
          {
