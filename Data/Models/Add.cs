@@ -20,4 +20,9 @@ public class Add
     public string ImageAsBase64String { get; set; }
     public string ImageBlobName { get; set; }
     public string ImageBlobUrl { get; set; }
+    public string BonusAmountText { get; set; }
+    public string ImageBgColor { get; set; }
+    public string FontFamily { get; set; }
+    public string FontSize { get; set; }
+
 }

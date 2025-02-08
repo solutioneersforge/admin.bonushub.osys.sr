@@ -2,6 +2,8 @@
 {
     public class AppColors
     {
+        public static string Transparent = "#00FFFFFF";
+
         public static string White = "#FFFFFF";
         public static string Tuna = "#373740";
 

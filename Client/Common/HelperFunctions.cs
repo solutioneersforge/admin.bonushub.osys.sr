@@ -1,19 +1,19 @@
 ﻿using MudBlazor;
+using Shared.Enums;
 
 namespace Client.Common
 {
     internal static class HelperFunctions
     {
-        internal static string GetPlacementZoneIcon(string loc)
+        internal static string GetPlacementZoneIcon(PlacementZone slot)
         {
-            return loc switch
+            return slot switch
             {
-                "Top" => @Icons.Material.Filled.VerticalAlignTop,
-                "Bottom" => @Icons.Material.Filled.VerticalAlignBottom,
-                "Middle" => @Icons.Material.Filled.VerticalAlignCenter,
-                "Right" => @Icons.Material.Filled.AlignHorizontalRight,
-                "Left" => @Icons.Material.Filled.AlignHorizontalLeft,
-                "Popup" => @Icons.Material.Filled.Window,
+                PlacementZone.Top => @Icons.Material.Filled.AlignVerticalTop,
+                PlacementZone.Center => @Icons.Material.Filled.AlignVerticalCenter,
+                PlacementZone.Right => @Icons.Material.Filled.AlignHorizontalRight,
+                PlacementZone.Left => @Icons.Material.Filled.AlignHorizontalLeft,
+                PlacementZone.Vip => @Icons.Material.Filled.Window,
                 _ => @Icons.Material.Filled.DeviceUnknown,
             };
         }

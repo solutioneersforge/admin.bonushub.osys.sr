@@ -1,0 +1,189 @@
+﻿@page "/centeradds"
+
+@attribute [Authorize(Roles = "admin")]
+
+@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Text.Json
+@using Data.AzureFunctionResponse
+@using Data.Models
+
+@implements IDisposable
+
+@if (_loading)
+{
+    <div style="position:absolute; top:30vh; width:100%; text-align:center">
+        <div style="display:flex; gap:10px; justify-content:center; align-items:center">
+            <div class="spinner-border"></div>
+            Loading...
+        </div>
+    </div>
+}
+
+@if (!_loading)
+{
+    <MudToolBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}; position: fixed;top: 50px;left: 10px;padding: 10px;")">
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate OnKeyDown="@(e => { if (e.Key == "Enter") { ApplyFilter(); } })"
+        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+    </MudToolBar>
+
+    <MudPaper Class="d-flex align-content-start flex-wrap flex-md-wrap gap-1" Style="margin:40px 0 0 10px" Elevation="0">
+        @foreach (var add in FilteredAdds)
+        {
+            <AddCard Item="@add" OpenForm="@(() => OpenForm(add))" />
+        }
+    </MudPaper>
+
+    <MudFab StartIcon="@(_showPublishedAddsOnly ? Icons.Material.Filled.Add : Icons.Material.Filled.Remove)"
+            IconColor="@(_showPublishedAddsOnly ? MudBlazor.Color.Success : MudBlazor.Color.Error)"
+            Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
+            Class="floating-button-filter" OnClick="@ShowPublishedAddsOnly"
+    Style="position: fixed;bottom: 80px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />
+
+    <MudFab StartIcon="@Icons.Material.Filled.PlaylistAdd" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
+            OnClick="@(() => OpenForm(new DefaultNewAddItem(Slot).Instance))"
+    Style="position: fixed;bottom: 20px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />
+}
+
+@code {
+    [CascadingParameter] public Client.States.States State { get; set; } = new();
+    readonly Action<SnackbarOptions> config = (SnackbarOptions options) =>
+     {
+         options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+         options.ShowCloseIcon = true;
+     };
+
+    PlacementZone Slot = PlacementZone.Center;
+    MudDataGrid<Add> MudDataGridRef = new();
+    bool _loading;
+    bool _showPublishedAddsOnly = true;
+    string _searchString = string.Empty;
+    string LoggedInUser = string.Empty;
+    IEnumerable<Add> Adds = [];
+    IEnumerable<Add> FilteredAdds = [];
+
+    protected override void OnParametersSet() => State.OnThemeChanged += HandleEvent;
+    void IDisposable.Dispose() => State.OnThemeChanged -= HandleEvent;
+    async Task HandleEvent() => await Task.CompletedTask;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            SnackbarService.Clear();
+
+#if !DEBUG
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity == null || !user.Identity.IsAuthenticated)
+            {
+                NavigationManager.NavigateTo("/.auth/login/aad", true);
+                return;
+            }
+
+            if (user.Identity != null && user.Identity.IsAuthenticated)
+            {
+                LoggedInUser = user.Identity.Name;
+            }
+#endif
+
+            _loading = true;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    async Task OpenForm(Add item)
+    {
+#if DEBUG
+    item.User = "Debugger";
+#else
+        item.User = LoggedInUser;
+#endif
+
+        var itemCopy = new Add
+            {
+                Id = item.Id,
+                FontFamily = item.FontFamily,
+                FontSize = item.FontSize,
+                BonusAmountText = item.BonusAmountText,
+                ImageBgColor = item.ImageBgColor,
+                IsPublished = item.IsPublished,
+                ImageBlobName = item.ImageBlobName,
+                ImageBlobUrl = item.ImageBlobUrl,
+                ActiveFrom = item.ActiveFrom,
+                ActiveUntil = item.ActiveUntil,
+                IsActive = item.IsActive,
+                DisplayOrder = item.DisplayOrder,
+                AddPlacementZone = item.AddPlacementZone,
+                ImageFileName = item.ImageFileName,
+                LabelText = item.LabelText,
+                RedirectUrl = item.RedirectUrl,
+                User = LoggedInUser
+            };
+
+        var parameters = new DialogParameters
+         {
+             { "SelectedItem", itemCopy },
+         };
+
+        var options = new MudBlazor.DialogOptions()
+            {
+                CloseOnEscapeKey = false,
+                Position = MudBlazor.DialogPosition.Center,
+                MaxWidth = MaxWidth.Medium,
+                BackdropClick = false,
+                BackgroundClass = "bg-blur",
+                NoHeader = true,
+            };
+
+        var dialog = await DialogService.ShowAsync<AddForm>($"Item: {item.LabelText}", parameters, options);
+        var result = await dialog.Result;
+        if (result is not null && !result.Canceled)
+        {
+            if (result.Data is true)
+            {
+                await LoadData();
+                return;
+            }
+        }
+    }
+
+    async Task LoadData()
+    {
+        var func = AzureFunctions.GetAdds.GetName();
+        var response = await Http.GetStringAsync($"{func}/{_showPublishedAddsOnly}/{Slot.GetDescription()}");
+
+        var data = JsonSerializer.Deserialize<AfrAdd>(response);
+        Adds = data?.Value ?? [];
+        ApplyFilter();
+    }
+
+    void ApplyFilter()
+    {
+        FilteredAdds = string.IsNullOrEmpty(_searchString)
+        ? Adds
+        : Adds.Where(x => x.LabelText.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+    }
+
+    async Task ShowPublishedAddsOnly()
+    {
+        _showPublishedAddsOnly = !_showPublishedAddsOnly;
+        await LoadData();
+    }
+}
+

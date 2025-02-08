@@ -8,7 +8,13 @@
     </MudDrawerHeader>
 
     <MudNavMenu>
-        <MudNavLink Href="/" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.ViewList">Bonuses</MudNavLink>
+        <MudNavGroup Icon="@Icons.Material.Filled.ViewList" Expanded Title="Adds">
+            <MudNavLink Href="/vipadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Vip)">@PlacementZone.Vip.GetDescription()</MudNavLink>
+            <MudNavLink Href="/topadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Top)">@PlacementZone.Top.GetDescription()</MudNavLink>
+            <MudNavLink Href="/centeradds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Center)">@PlacementZone.Center.GetDescription()</MudNavLink>
+            <MudNavLink Href="/rightadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Right)">@PlacementZone.Right.GetDescription()</MudNavLink>
+            <MudNavLink Href="/leftadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Left)">@PlacementZone.Left.GetDescription()</MudNavLink>
+        </MudNavGroup>
         <MudNavLink Href="/changelogs" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.ChangeHistory">Changelogs</MudNavLink>
     </MudNavMenu>
 </MudDrawer>

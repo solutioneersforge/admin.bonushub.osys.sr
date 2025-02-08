@@ -19,10 +19,10 @@ namespace Api
 
         [Function("FunctionGetAdds")]
         public IActionResult Run(
-                [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "FunctionGetAdds/{bd}/{ed}")] HttpRequestData req,
+                [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "FunctionGetAdds/{IsPublished}/{AddPlacementZone}")] HttpRequestData req,
                 [SqlInput(commandText: "Bonus.GetAdds",
                     commandType: System.Data.CommandType.StoredProcedure,
-                    parameters: "@Bd={bd},@Ed={ed}",
+                    parameters: "@IsPublished={IsPublished},@AddPlacementZone={AddPlacementZone}",
                     connectionStringSetting: "AZURESQL_CONNECTION_STRING")] IEnumerable<Add> result
                 )
         {

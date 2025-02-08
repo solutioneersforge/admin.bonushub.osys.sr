@@ -15,10 +15,7 @@
     <DialogContent>
         <MudStack Row Spacing="1" Wrap="Wrap.NoWrap" Justify="Justify.FlexStart">
             <MudNumericField Margin="Margin.Dense" Required Min="1" Step="1" T="int" @bind-Value="@SelectedItem.DisplayOrder" Label="Rank" Immediate Style="width:50px" />
-            <MudIconButton Icon="@HelperFunctions.GetPlacementZoneIcon(SelectedItem.AddPlacementZone)" Size="MudBlazor.Size.Small" OnClick="OpenPlacementZonePickerDialog" />
-            <MudIconButton Icon="@Icons.Material.Filled.DateRange" Size="MudBlazor.Size.Small" OnClick="OpenDateRangePickerDialog" />
-            <MudSwitch @bind-Value="@SelectedItem.IsActive" ThumbIcon="@(SelectedItem.IsActive ? @Icons.Material.Filled.ToggleOn : @Icons.Material.Filled.ToggleOff)" ThumbIconColor="@(SelectedItem.IsActive ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
-            <MudSwitch @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Public : @Icons.Material.Filled.PublicOff)" ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
+            <MudSwitch @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Add : @Icons.Material.Filled.Remove)" ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
         </MudStack>
 
         <div class="d-flex justify-center">
@@ -28,7 +25,7 @@
                     @if (SaveInProgress)
                     {
                         <MudProgressCircular Indeterminate Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" />
-                        <MudAlert NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">Uploading...</MudAlert>
+                        <MudAlert Dense NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">Uploading...</MudAlert>
                     }
                     else
                     {
@@ -39,14 +36,21 @@
                                 </MudIconButton>
                             </ActivatorContent>
                         </MudFileUpload>
-                        <MudAlert hidden="@(string.IsNullOrEmpty(@SelectedItem.ImageFileName))" NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">@SelectedItem.ImageFileName</MudAlert>
+                        <MudAlert Dense hidden="@(string.IsNullOrEmpty(@SelectedItem.ImageFileName))" NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">@SelectedItem.ImageFileName</MudAlert>
                     }
                 </MudStack>
             </MudStack>
         </div>
-        <MudTextField @bind-Value="@SelectedItem.LabelText" Label="Text" Required Variant="Variant.Text" Margin="Margin.Dense" />
-        <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="Redirect url" Required AutoFocus Margin="Margin.Dense" />
 
+        <MudColorPicker ShowToolbar="true" Label="Image background color" PickerVariant="PickerVariant.Dialog" @bind-Text="@SelectedItem.ImageBgColor" />
+        <MudTextField @bind-Value="@SelectedItem.LabelText" Label="Text" Required Variant="Variant.Text" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="@SelectedItem.BonusAmountText" Label="Amount" Variant="Variant.Text" Margin="Margin.Dense" />
+        <MudAutocomplete T="string" Label="Font" @bind-Value="@SelectedItem.FontFamily" SearchFunc="@SearchFont"
+                         Strict="false" Dense  AdornmentIcon="@Icons.Material.Filled.Search" />
+        <MudTextField @bind-Value="@SelectedItem.FontSize" Label="Font size" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="Redirect url" Required AutoFocus Margin="Margin.Dense" />
+        <MudSwitch Label="@(SelectedItem.IsPublished ? "Published" : "Not published")" Size="MudBlazor.Size.Medium" @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Add : @Icons.Material.Filled.Remove)"
+                   ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
     </DialogContent>
     <DialogActions>
         <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Restore" Color="MudBlazor.Color.Info" OnClick="Reset" Disabled="@SaveInProgress" />
@@ -55,7 +59,7 @@
         {
             <MudSwitch Size="MudBlazor.Size.Small" @bind-Value="@DoNotCloseForm" ThumbIcon="@(DoNotCloseForm ? @Icons.Material.Filled.OpenInNew : @Icons.Material.Filled.OpenInNewOff)" ThumbIconColor="@(DoNotCloseForm ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Keep open? {(DoNotCloseForm ? "yes" : "no")}")</MudSwitch>
         }
-        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Save" Color="MudBlazor.Color.Info"  OnClick="Done" Disabled="@SaveInProgress" />
+        <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Save" Color="MudBlazor.Color.Info" OnClick="Done" Disabled="@SaveInProgress" />
         <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Cancel" Color="MudBlazor.Color.Error" OnClick="Cancel" />
     </DialogActions>
 </MudDialog>
@@ -107,6 +111,18 @@
                 }
             }
         }
+    }
+
+    async Task<IEnumerable<string>> SearchFont(string value, CancellationToken token)
+    {
+        // In real life use an asynchronous function for fetching data from an api.
+        await Task.Delay(5, token);
+
+        // if text is null or empty, don't return values (drop-down will not open)
+        if (string.IsNullOrEmpty(value))
+            return FontFamilies.WebFriendlyFonts;
+
+        return FontFamilies.WebFriendlyFonts.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
     async Task Done()

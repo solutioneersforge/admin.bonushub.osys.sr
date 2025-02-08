@@ -1,0 +1,55 @@
+﻿@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+
+<MudCard Square Style="width: 350px; height: 200px;margin:5px">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudStack Spacing="0">
+                <MudText Align="MudBlazor.Align.Center" Typo="Typo.caption">Rank</MudText>
+                <MudAvatar Square Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default" Variant="Variant.Outlined">@Item.DisplayOrder</MudAvatar>
+            </MudStack>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.body1">@Item.LabelText</MudText>
+            <MudText Typo="Typo.body2">@Item.BonusAmountText</MudText>
+            <MudText Typo="Typo.body2">@($"{Item.FontFamily} {Item.FontSize}")</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardActions>
+        <MudIcon Color="@(Item.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" Icon="@(Item.IsPublished ? Icons.Material.Filled.Add : Icons.Material.Filled.Remove)" />
+        <MudSpacer />
+        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="Variant.Filled" Size="MudBlazor.Size.Small" IconSize="MudBlazor.Size.Small" StartIcon="@Icons.Material.Filled.Image" Color="MudBlazor.Color.Default" OnClick="@DisplayImage">View Image</MudButton>
+        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="Variant.Filled" Size="MudBlazor.Size.Small" IconSize="MudBlazor.Size.Small" StartIcon="@Icons.Material.Filled.Edit" Color="MudBlazor.Color.Default" OnClick="@FormOpened">Edit</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Parameter]
+    public Add Item { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<Add> OpenForm { get; set; }
+
+    private async Task FormOpened() => await OpenForm.InvokeAsync(Item);
+
+
+    async Task DisplayImage()
+    {
+        var parameters = new DialogParameters
+         {
+             { "SelectedItem", Item },
+         };
+
+        var options = new MudBlazor.DialogOptions()
+            {
+                CloseButton = true,
+                CloseOnEscapeKey = true,
+                Position = MudBlazor.DialogPosition.Center,
+                MaxWidth = MaxWidth.Small,
+                BackdropClick = true,
+                BackgroundClass = "bg-blur",
+            };
+
+        await DialogService.ShowAsync<DisplayAddImage>($"{Item.LabelText}", parameters, options);
+    }
+}
