@@ -12,41 +12,36 @@
 @using Microsoft.AspNetCore.Components.Forms
 
 <MudDialog>
+
     <DialogContent>
-        <MudStack Row Spacing="1" Wrap="Wrap.NoWrap" Justify="Justify.FlexStart">
-            <MudNumericField Margin="Margin.Dense" Required Min="1" Step="1" T="int" @bind-Value="@SelectedItem.DisplayOrder" Label="Rank" Immediate Style="width:50px" />
-            <MudSwitch @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Add : @Icons.Material.Filled.Remove)" ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
+        <MudStack Row>
+            <MudStack Spacing="0">
+                <MudText Align="MudBlazor.Align.Center" Typo="Typo.caption">Rank</MudText>
+                <MudAlert Square NoIcon Dense Variant="Variant.Outlined" OnClick="PickRank">@SelectedItem.DisplayOrder</MudAlert>
+            </MudStack>
+
+            @if (SaveInProgress)
+            {
+                <MudProgressCircular Indeterminate Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" />
+            }
+            else
+            {
+                <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png, .apng, .jpg, .jpeg, .jpe, .jif, .jfif, .svg, .webp, .bmp, .tif, .tiff, .avif, .xbm" Required>
+                    <ActivatorContent>
+                        <MudIconButton Color="MudBlazor.Color.Info"
+                                       Icon="@Icons.Material.Filled.PhotoCamera">
+                        </MudIconButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+            }
         </MudStack>
 
-        <div class="d-flex justify-center">
-            <MudStack>
-                <MudImage hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Height="200" Width="400" Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25" Class="rounded-lg" />
-                <MudStack Row>
-                    @if (SaveInProgress)
-                    {
-                        <MudProgressCircular Indeterminate Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" />
-                        <MudAlert Dense NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">Uploading...</MudAlert>
-                    }
-                    else
-                    {
-                        <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png, .apng, .jpg, .jpeg, .jpe, .jif, .jfif, .svg, .webp, .bmp, .tif, .tiff, .avif, .xbm" Required>
-                            <ActivatorContent>
-                                <MudIconButton Color="MudBlazor.Color.Info"
-                                               Icon="@Icons.Material.Filled.PhotoCamera">
-                                </MudIconButton>
-                            </ActivatorContent>
-                        </MudFileUpload>
-                        <MudAlert Dense hidden="@(string.IsNullOrEmpty(@SelectedItem.ImageFileName))" NoIcon Square Variant="Variant.Outlined" Severity="MudBlazor.Severity.Info">@SelectedItem.ImageFileName</MudAlert>
-                    }
-                </MudStack>
-            </MudStack>
-        </div>
+        <MudImage hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Height="200" Width="400" Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25" Class="rounded-lg" />
 
         <MudColorPicker ShowToolbar="true" Label="Image background color" PickerVariant="PickerVariant.Dialog" @bind-Text="@SelectedItem.ImageBgColor" />
         <MudTextField @bind-Value="@SelectedItem.LabelText" Label="Text" Required Variant="Variant.Text" Margin="Margin.Dense" />
         <MudTextField @bind-Value="@SelectedItem.BonusAmountText" Label="Amount" Variant="Variant.Text" Margin="Margin.Dense" />
-        <MudAutocomplete T="string" Label="Font" @bind-Value="@SelectedItem.FontFamily" SearchFunc="@SearchFont"
-                         Strict="false" Dense  AdornmentIcon="@Icons.Material.Filled.Search" />
+        <MudTextField @bind-Value="@SelectedItem.FontFamily" Label="Font" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="@MudBlazor.Color.Default" OnAdornmentClick="PickFont" />
         <MudTextField @bind-Value="@SelectedItem.FontSize" Label="Font size" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" />
         <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="Redirect url" Required AutoFocus Margin="Margin.Dense" />
         <MudSwitch Label="@(SelectedItem.IsPublished ? "Published" : "Not published")" Size="MudBlazor.Size.Medium" @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Add : @Icons.Material.Filled.Remove)"
@@ -55,10 +50,6 @@
     <DialogActions>
         <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Restore" Color="MudBlazor.Color.Info" OnClick="Reset" Disabled="@SaveInProgress" />
         <MudSpacer />
-        @if (SelectedItem.Id == -1)
-        {
-            <MudSwitch Size="MudBlazor.Size.Small" @bind-Value="@DoNotCloseForm" ThumbIcon="@(DoNotCloseForm ? @Icons.Material.Filled.OpenInNew : @Icons.Material.Filled.OpenInNewOff)" ThumbIconColor="@(DoNotCloseForm ? MudBlazor.Color.Success : MudBlazor.Color.Error)">@($"Keep open? {(DoNotCloseForm ? "yes" : "no")}")</MudSwitch>
-        }
         <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Save" Color="MudBlazor.Color.Info" OnClick="Done" Disabled="@SaveInProgress" />
         <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Cancel" Color="MudBlazor.Color.Error" OnClick="Cancel" />
     </DialogActions>
@@ -66,8 +57,11 @@
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] public Client.States.States State { get; set; } = new();
 
     [Parameter] public Add SelectedItem { get; set; } = new();
+    [Parameter] public int LastRankNumber { get; set; }
+    [Parameter] public IEnumerable<int> UnavailableRanks { get; set; } = [];
 
     readonly Action<SnackbarOptions> config = (SnackbarOptions options) =>
     {
@@ -83,6 +77,7 @@
     bool SaveInProgress = false; bool DoNotCloseForm = false;
     int NumberOfNewItemsSaved;
     CancellationTokenSource AbortTokenSource = new();
+    List<int> AvailableRanks = [];
 
     protected override void OnParametersSet()
     {
@@ -91,7 +86,38 @@
             SelectedImageSrc = SelectedItem.ImageBlobUrl;
         }
         LoggedInUser = SelectedItem.User;
-        BackupCopyItem = new Add { Id = SelectedItem.Id, IsPublished = SelectedItem.IsPublished, ImageBlobName = SelectedItem.ImageBlobName, ImageBlobUrl = SelectedItem.ImageBlobUrl, ActiveFrom = SelectedItem.ActiveFrom, ActiveUntil = SelectedItem.ActiveUntil, AddPlacementZone = SelectedItem.AddPlacementZone, IsActive = SelectedItem.IsActive, DisplayOrder = SelectedItem.DisplayOrder, ImageFileName = SelectedItem.ImageFileName, LabelText = SelectedItem.LabelText, RedirectUrl = SelectedItem.RedirectUrl };
+        BackupCopyItem = new Add
+            {
+                Id = SelectedItem.Id,
+                IsPublished = SelectedItem.IsPublished,
+                ImageBlobName = SelectedItem.ImageBlobName,
+                ImageBlobUrl = SelectedItem.ImageBlobUrl,
+                ActiveFrom = SelectedItem.ActiveFrom,
+                ActiveUntil = SelectedItem.ActiveUntil,
+                AddPlacementZone = SelectedItem.AddPlacementZone,
+                IsActive = SelectedItem.IsActive,
+                DisplayOrder = SelectedItem.DisplayOrder,
+                ImageFileName = SelectedItem.ImageFileName,
+                LabelText = SelectedItem.LabelText,
+                BonusAmountText = SelectedItem.BonusAmountText,
+                FontFamily = SelectedItem.FontFamily,
+                FontSize = SelectedItem.FontSize,
+                ImageBgColor = SelectedItem.ImageBgColor,
+                RedirectUrl = SelectedItem.RedirectUrl
+            };
+
+        var ranksRange = State.AllowedAddsRangePerSlot.FirstOrDefault(x => x.Slot.ToLower() == SelectedItem.AddPlacementZone.ToLower());
+        if (ranksRange is null) return;
+
+        var min = ranksRange.Minimum <= 0 ? 1 : ranksRange.Minimum;
+        var max = ranksRange.Maximum;
+        var ranks = Enumerable.Range(min, max).Except(UnavailableRanks).ToList();
+        if (SelectedItem.Id > 0)
+        {
+            AvailableRanks.AddRange(ranks.Concat(new[] { SelectedItem.DisplayOrder }).OrderBy(x => x));
+            return;
+        }
+        AvailableRanks.AddRange(ranks.OrderBy(x => x));
     }
 
     async Task UploadImageFile(IBrowserFile file)
@@ -111,18 +137,6 @@
                 }
             }
         }
-    }
-
-    async Task<IEnumerable<string>> SearchFont(string value, CancellationToken token)
-    {
-        // In real life use an asynchronous function for fetching data from an api.
-        await Task.Delay(5, token);
-
-        // if text is null or empty, don't return values (drop-down will not open)
-        if (string.IsNullOrEmpty(value))
-            return FontFamilies.WebFriendlyFonts;
-
-        return FontFamilies.WebFriendlyFonts.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
     async Task Done()
@@ -180,7 +194,28 @@
                 NumberOfNewItemsSaved++;
                 ImageFile = null!;
                 SelectedImageSrc = string.Empty;
-                SelectedItem = new Add { Id = -1, LabelText = string.Empty, RedirectUrl = string.Empty, ImageBlobName = string.Empty, ImageFileName = string.Empty, User = LoggedInUser, ImageAsBase64String = string.Empty, AddPlacementZone = "Top", IsActive = true, IsPublished = false, DisplayOrder = 1, ActiveFrom = DateTime.Now, ActiveUntil = DateTime.Now, DesktopClickCount = 0, MobileTapCount = 0 };
+                SelectedItem = new Add
+                    {
+                        Id = -1,
+                        LabelText = string.Empty,
+                        BonusAmountText = string.Empty,
+                        FontFamily = string.Empty,
+                        FontSize = string.Empty,
+                        ImageBgColor = string.Empty,
+                        RedirectUrl = string.Empty,
+                        ImageBlobName = string.Empty,
+                        ImageFileName = string.Empty,
+                        User = LoggedInUser,
+                        ImageAsBase64String = string.Empty,
+                        AddPlacementZone = "Top",
+                        IsActive = true,
+                        IsPublished = false,
+                        DisplayOrder = 1,
+                        ActiveFrom = DateTime.Now,
+                        ActiveUntil = DateTime.Now,
+                        DesktopClickCount = 0,
+                        MobileTapCount = 0
+                    };
                 StateHasChanged();
                 return;
             }
@@ -222,7 +257,25 @@
     void Reset()
     {
         SelectedImageSrc = string.Empty; SelectedItem = BackupCopyItem;
-        SelectedItem = new Add { Id = BackupCopyItem.Id, IsPublished = BackupCopyItem.IsPublished, ImageBlobName = BackupCopyItem.ImageBlobName, ImageBlobUrl = BackupCopyItem.ImageBlobUrl, ActiveFrom = BackupCopyItem.ActiveFrom, ActiveUntil = BackupCopyItem.ActiveUntil, AddPlacementZone = BackupCopyItem.AddPlacementZone, IsActive = BackupCopyItem.IsActive, DisplayOrder = BackupCopyItem.DisplayOrder, ImageFileName = BackupCopyItem.ImageFileName, LabelText = BackupCopyItem.LabelText, RedirectUrl = BackupCopyItem.RedirectUrl };
+        SelectedItem = new Add
+            {
+                Id = BackupCopyItem.Id,
+                IsPublished = BackupCopyItem.IsPublished,
+                ImageBlobName = BackupCopyItem.ImageBlobName,
+                ImageBlobUrl = BackupCopyItem.ImageBlobUrl,
+                ActiveFrom = BackupCopyItem.ActiveFrom,
+                ActiveUntil = BackupCopyItem.ActiveUntil,
+                AddPlacementZone = BackupCopyItem.AddPlacementZone,
+                IsActive = BackupCopyItem.IsActive,
+                DisplayOrder = BackupCopyItem.DisplayOrder,
+                ImageFileName = BackupCopyItem.ImageFileName,
+                LabelText = BackupCopyItem.LabelText,
+                BonusAmountText = BackupCopyItem.BonusAmountText,
+                FontFamily = BackupCopyItem.FontFamily,
+                FontSize = BackupCopyItem.FontSize,
+                ImageBgColor = BackupCopyItem.ImageBgColor,
+                RedirectUrl = BackupCopyItem.RedirectUrl
+            };
         if (SelectedItem.Id > 0)
         {
             SelectedImageSrc = BackupCopyItem.ImageBlobUrl;
@@ -230,55 +283,57 @@
         StateHasChanged();
     }
 
-    async Task OpenDateRangePickerDialog()
+    async Task PickRank()
     {
         var parameters = new DialogParameters
          {
-              { "StartDate", SelectedItem.ActiveFrom }, { "EndDate", SelectedItem.ActiveUntil }
+              { "SelectedItem", SelectedItem.DisplayOrder }, { nameof(AvailableRanks), AvailableRanks }
          };
 
         var options = new MudBlazor.DialogOptions()
             {
+                CloseOnEscapeKey = true,
+                CloseButton = true,
+                BackdropClick = false,
                 Position = MudBlazor.DialogPosition.Center,
                 MaxWidth = MaxWidth.ExtraSmall,
                 BackgroundClass = "bg-blur",
-                NoHeader = true,
             };
 
-        var dialog = await DialogService.ShowAsync<DateRangePickerDialog>(string.Empty, parameters, options);
+        var dialog = await DialogService.ShowAsync<RankPicker>(string.Empty, parameters, options);
         var result = await dialog.Result;
         if (result is not null && !result.Canceled)
         {
-            var data = result.Data as DateTime?[];
-            if (data is null || data.Length < 2 || !data[0].HasValue || !data[1].HasValue) return;
-
-            SelectedItem.ActiveFrom = data[0] ?? SelectedItem.ActiveFrom;
-            SelectedItem.ActiveUntil = data[1] ?? SelectedItem.ActiveUntil;
+            if (result.Data is not null && int.TryParse(result.Data.ToString(), out var rank))
+            {
+                SelectedItem.DisplayOrder = rank;
+            }
         }
     }
 
-    async Task OpenPlacementZonePickerDialog()
+    async Task PickFont()
     {
         var parameters = new DialogParameters
          {
-              { "PlacementZone", SelectedItem.AddPlacementZone }
+              { "SelectedItem", SelectedItem.FontFamily }
          };
 
         var options = new MudBlazor.DialogOptions()
             {
+                CloseOnEscapeKey = true,
+                CloseButton = true,
+                BackdropClick = false,
                 Position = MudBlazor.DialogPosition.Center,
-                MaxWidth = MaxWidth.Small,
+                MaxWidth = MaxWidth.ExtraSmall,
                 BackgroundClass = "bg-blur",
-                NoHeader = true,
             };
 
-        var dialog = await DialogService.ShowAsync<PlacementZonePickerDialog>(string.Empty, parameters, options);
+        var dialog = await DialogService.ShowAsync<FontFamilyPicker>(string.Empty, parameters, options);
         var result = await dialog.Result;
         if (result is not null && !result.Canceled)
         {
             var data = result.Data as string;
-
-            SelectedItem.AddPlacementZone = data;
+            SelectedItem.FontFamily = data ?? string.Empty;
         }
     }
 

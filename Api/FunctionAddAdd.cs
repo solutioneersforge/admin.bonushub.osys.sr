@@ -76,6 +76,10 @@ namespace Api
                     command.Parameters.Add(new SqlParameter("@Id", SqlDbType.Int) { Value = add.Id });
                     command.Parameters.Add(new SqlParameter("@AddPlacementZone", SqlDbType.NVarChar) { Value = add.AddPlacementZone });
                     command.Parameters.Add(new SqlParameter("@LabelText", SqlDbType.NVarChar) { Value = add.LabelText });
+                    command.Parameters.Add(new SqlParameter("@BonusAmountText", SqlDbType.NVarChar) { Value = add.BonusAmountText });
+                    command.Parameters.Add(new SqlParameter("@ImageBgColor", SqlDbType.NVarChar) { Value = add.ImageBgColor });
+                    command.Parameters.Add(new SqlParameter("@FontFamily", SqlDbType.NVarChar) { Value = add.FontFamily });
+                    command.Parameters.Add(new SqlParameter("@FontSize", SqlDbType.NVarChar) { Value = add.FontSize });
                     command.Parameters.Add(new SqlParameter("@ImageFileName", SqlDbType.NVarChar) { Value = add.ImageFileName });
                     command.Parameters.Add(new SqlParameter("@ImageBlobName", SqlDbType.NVarChar) { Value = add.ImageBlobName });
                     command.Parameters.Add(new SqlParameter("@RedirectUrl", SqlDbType.NVarChar) { Value = add.RedirectUrl });

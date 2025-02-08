@@ -14,8 +14,10 @@ namespace Client.Constants
             {
                 Id = -1,
                 LabelText = "Buraya reklam verebilirsini",
-                ImageBgColor = AppColors.Transparent,
                 BonusAmountText = "",
+                ImageBgColor = AppColors.Transparent,
+                FontFamily = "",
+                FontSize = "",
                 RedirectUrl = "",
                 ImageBlobName = string.Empty,
                 ImageFileName = string.Empty,

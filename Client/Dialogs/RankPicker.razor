@@ -1,0 +1,26 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudRadioGroup @bind-Value="SelectedItem">
+            @foreach (var r in AvailableRanks)
+            {
+                <MudRadio Value="@r" Size="MudBlazor.Size.Small">@r</MudRadio>
+            }
+        </MudRadioGroup>
+    </DialogContent>
+    <DialogActions>
+        @if (SelectedItem > 0)
+        {
+            <MudButton Size="MudBlazor.Size.Small" Variant="Variant.Filled" Style="@Styles.StandardButtonNoColorStyle" OnClick="Done">
+                @($"Select rank: {SelectedItem}")
+            </MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int SelectedItem { get; set; }
+    [Parameter] public List<int> AvailableRanks { get; set; } = [];
+
+    void Done() => MudDialog.Close(DialogResult.Ok(SelectedItem));
+}

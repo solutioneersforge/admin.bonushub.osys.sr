@@ -1,0 +1,25 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudDataGrid Dense Square Outlined="false" Hover Items="@Constants.FontFamilies.WebFriendlyFonts" SelectedItem="@SelectedItem" T="string"
+                     RowClick="OnRowClicked">
+            <Columns>
+                <TemplateColumn>
+                    <CellTemplate>
+                        <MudAlert ContentAlignment="HorizontalAlignment.Center" NoIcon Square Variant="Variant.Text" Style="@($"font-family:{@context.Item}")" Dense>@context.Item</MudAlert>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string SelectedItem { get; set; } = string.Empty;
+
+    void OnRowClicked(DataGridRowClickEventArgs<string> args)
+    {
+        SelectedItem = args.Item;
+        MudDialog.Close(DialogResult.Ok(SelectedItem));
+    }
+}

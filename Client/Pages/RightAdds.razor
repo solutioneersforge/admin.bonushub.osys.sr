@@ -46,7 +46,7 @@
             Class="floating-button-filter" OnClick="@ShowPublishedAddsOnly"
     Style="position: fixed;bottom: 80px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />
 
-    <MudFab StartIcon="@Icons.Material.Filled.PlaylistAdd" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
+    <MudFab StartIcon="@Icons.Material.Filled.PlaylistAdd" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info"
             OnClick="@(() => OpenForm(new DefaultNewAddItem(Slot).Instance))"
     Style="position: fixed;bottom: 20px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />
 }
@@ -135,9 +135,19 @@
                 User = LoggedInUser
             };
 
+        var UnavailableRanks = Adds.Select(x => x.DisplayOrder);
+        if (!_showPublishedAddsOnly)
+        {
+            var func = AzureFunctions.GetAdds.GetName();
+            var response = await Http.GetStringAsync($"{func}/{!_showPublishedAddsOnly}/{Slot.GetDescription()}");
+            var data = JsonSerializer.Deserialize<AfrAdd>(response);
+            var adds = data?.Value ?? [];
+            UnavailableRanks = adds.Select(x => x.DisplayOrder);
+        }
+
         var parameters = new DialogParameters
          {
-             { "SelectedItem", itemCopy },
+             { "SelectedItem", itemCopy }, { "LastRankNumber", Adds.Max(x => x.DisplayOrder) },{ nameof(UnavailableRanks), UnavailableRanks },
          };
 
         var options = new MudBlazor.DialogOptions()
