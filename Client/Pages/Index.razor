@@ -67,6 +67,14 @@
     await Task.CompletedTask;
 #endif
 
+
+            var func = AzureFunctions.GetAllowedAddsRanges.GetName();
+            var response = await Http.GetStringAsync($"{func}");
+
+            var data = JsonSerializer.Deserialize<AfrAllowedAddsRange>(response);
+            var ranges = data?.Value.ToList() ?? [];
+            State.AllowedAddsRangePerSlot = ranges;
+
             _loading = true;
         }
         catch (Exception ex)

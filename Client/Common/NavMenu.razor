@@ -15,7 +15,10 @@
             <MudNavLink Href="/rightadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Right)">@PlacementZone.Right.GetDescription()</MudNavLink>
             <MudNavLink Href="/leftadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Left)">@PlacementZone.Left.GetDescription()</MudNavLink>
         </MudNavGroup>
-        <MudNavLink Href="/changelogs" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.ChangeHistory">Changelogs</MudNavLink>
+        <MudNavLink Href="/changelogs" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.TrackChanges">Changelogs</MudNavLink>
+        <MudNavGroup Icon="@Icons.Material.Filled.Settings" Expanded Title="Settings">
+            <MudNavLink Href="/allowedaddsranges" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.DataThresholding">Adds per slot</MudNavLink>
+        </MudNavGroup>
     </MudNavMenu>
 </MudDrawer>
 

@@ -1,0 +1,138 @@
+﻿@page "/allowedaddsranges"
+
+@attribute [Authorize(Roles = "admin")]
+
+@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Text.Json
+@using Data.AzureFunctionResponse
+@using Data.Models
+
+@implements IDisposable
+
+<MudContainer>
+    <MudPaper>
+        <MudDataGrid Items="@Data" Dense Loading="_loading" LoadingProgressColor="MudBlazor.Color.Info" ReadOnly="@_loading"
+                     T="AllowedAddsRange" EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick" CommittedItemChanges="@SaveChanges">
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="Id" Hidden Editable="false" />
+                <PropertyColumn Property="x => x.Slot" Editable="false" />
+                <PropertyColumn Property="x => x.MinimumAdds" Title="Min. adds" Editable Style="width:50px" />
+                <PropertyColumn Property="x => x.MaximumAdds" Title="Max. adds" Editable Style="width:100px" />
+            </Columns>
+        </MudDataGrid>
+    </MudPaper>
+</MudContainer>
+
+
+@code {
+    [CascadingParameter] public Client.States.States State { get; set; } = new();
+    readonly Action<SnackbarOptions> config = (SnackbarOptions options) =>
+     {
+         options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+         options.ShowCloseIcon = true;
+     };
+
+    CancellationTokenSource AbortTokenSource = new();
+
+    bool _loading;
+    string LoggedInUser = string.Empty;
+    IList<AllowedAddsRange> Data = [];
+    IEnumerable<AllowedAddsRange> DataCopy = [];
+
+    protected override void OnParametersSet() => State.OnThemeChanged += HandleEvent;
+    void IDisposable.Dispose() => State.OnThemeChanged -= HandleEvent;
+    async Task HandleEvent() => await Task.CompletedTask;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            SnackbarService.Clear();
+
+#if !DEBUG
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity == null || !user.Identity.IsAuthenticated)
+            {
+                NavigationManager.NavigateTo("/.auth/login/aad", true);
+                return;
+            }
+
+            if (user.Identity != null && user.Identity.IsAuthenticated)
+            {
+                LoggedInUser = user.Identity.Name;
+            }
+#endif
+
+            _loading = true;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    async Task LoadData()
+    {
+        var func = AzureFunctions.GetAllowedAddsRanges.GetName();
+        var response = await Http.GetStringAsync($"{func}");
+
+        var data = JsonSerializer.Deserialize<AfrAllowedAddsRange>(response);
+        Data.Clear();
+        Data = data?.Value.ToList() ?? [];
+        DataCopy = JsonSerializer.Deserialize<IEnumerable<AllowedAddsRange>>(JsonSerializer.Serialize(Data));
+    }
+
+    async Task SaveChanges(AllowedAddsRange item)
+    {
+        var parameters = new DialogParameters
+     {
+             { "ContentText", $"Are you sure you want to update the adds-range for slot {item.Slot}" },
+             { "SubmitButtonText", "Yes, go ahead!" },
+             { "CancelButtonText", "No, cancel!" },
+             { "SubmitButtonColor", MudBlazor.Color.Default }
+         };
+        var options = new MudBlazor.DialogOptions()
+            {
+                CloseButton = false,
+                CloseOnEscapeKey = false,
+                FullWidth = true,
+                Position = MudBlazor.DialogPosition.Center,
+                MaxWidth = MaxWidth.ExtraSmall,
+                FullScreen = false,
+                NoHeader = true,
+            };
+        var result = await DialogService.Show<DialogConfirmation>(string.Empty, parameters, options).Result;
+        if (result is not null && result.Canceled)
+        {
+            var copy = DataCopy.FirstOrDefault(x => x.Id == item.Id);
+            if (copy is null) return;
+            var index = Data.IndexOf(item);
+            if (index < 0) return;
+            Data[index].MinimumAdds = copy.MinimumAdds;
+            Data[index].MaximumAdds = copy.MaximumAdds;
+
+            return;
+        }
+
+        item.User = string.IsNullOrEmpty(LoggedInUser) ? "Debugger" : LoggedInUser;
+
+        CancellationToken cancellationToken = AbortTokenSource.Token;
+        var func = AzureFunctions.UpdateAllowedAddsRange.GetName();
+        var response = await Http.PostAsJsonAsync(func, item, cancellationToken);
+        await LoadData();
+    }
+}
+

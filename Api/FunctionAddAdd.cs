@@ -56,7 +56,7 @@ namespace Api
             return new OkObjectResult("Error!");
         }
 
-        async Task<bool> ExecuteStoredProcedureAsync(Add add)
+        async Task<bool> ExecuteStoredProcedureAsync(Add item)
         {
             var connectionString = Environment.GetEnvironmentVariable("AZURESQL_CONNECTION_STRING");
 
@@ -73,22 +73,22 @@ namespace Api
                 {
                     command.CommandType = CommandType.StoredProcedure;
 
-                    command.Parameters.Add(new SqlParameter("@Id", SqlDbType.Int) { Value = add.Id });
-                    command.Parameters.Add(new SqlParameter("@AddPlacementZone", SqlDbType.NVarChar) { Value = add.AddPlacementZone });
-                    command.Parameters.Add(new SqlParameter("@LabelText", SqlDbType.NVarChar) { Value = add.LabelText });
-                    command.Parameters.Add(new SqlParameter("@BonusAmountText", SqlDbType.NVarChar) { Value = add.BonusAmountText });
-                    command.Parameters.Add(new SqlParameter("@ImageBgColor", SqlDbType.NVarChar) { Value = add.ImageBgColor });
-                    command.Parameters.Add(new SqlParameter("@FontFamily", SqlDbType.NVarChar) { Value = add.FontFamily });
-                    command.Parameters.Add(new SqlParameter("@FontSize", SqlDbType.NVarChar) { Value = add.FontSize });
-                    command.Parameters.Add(new SqlParameter("@ImageFileName", SqlDbType.NVarChar) { Value = add.ImageFileName });
-                    command.Parameters.Add(new SqlParameter("@ImageBlobName", SqlDbType.NVarChar) { Value = add.ImageBlobName });
-                    command.Parameters.Add(new SqlParameter("@RedirectUrl", SqlDbType.NVarChar) { Value = add.RedirectUrl });
-                    command.Parameters.Add(new SqlParameter("@ActiveFrom", SqlDbType.Date) { Value = add.ActiveFrom });
-                    command.Parameters.Add(new SqlParameter("@ActiveUntil", SqlDbType.Date) { Value = add.ActiveUntil });
-                    command.Parameters.Add(new SqlParameter("@IsActive", SqlDbType.Bit) { Value = add.IsActive });
-                    command.Parameters.Add(new SqlParameter("@IsPublished", SqlDbType.Bit) { Value = add.IsPublished });
-                    command.Parameters.Add(new SqlParameter("@DisplayOrder", SqlDbType.Int) { Value = add.DisplayOrder });
-                    command.Parameters.Add(new SqlParameter("@User", SqlDbType.NVarChar) { Value = add.User });
+                    command.Parameters.Add(new SqlParameter("@Id", SqlDbType.Int) { Value = item.Id });
+                    command.Parameters.Add(new SqlParameter("@AddPlacementZone", SqlDbType.NVarChar) { Value = item.AddPlacementZone });
+                    command.Parameters.Add(new SqlParameter("@LabelText", SqlDbType.NVarChar) { Value = item.LabelText });
+                    command.Parameters.Add(new SqlParameter("@BonusAmountText", SqlDbType.NVarChar) { Value = item.BonusAmountText });
+                    command.Parameters.Add(new SqlParameter("@ImageBgColor", SqlDbType.NVarChar) { Value = item.ImageBgColor });
+                    command.Parameters.Add(new SqlParameter("@FontFamily", SqlDbType.NVarChar) { Value = item.FontFamily });
+                    command.Parameters.Add(new SqlParameter("@FontSize", SqlDbType.NVarChar) { Value = item.FontSize });
+                    command.Parameters.Add(new SqlParameter("@ImageFileName", SqlDbType.NVarChar) { Value = item.ImageFileName });
+                    command.Parameters.Add(new SqlParameter("@ImageBlobName", SqlDbType.NVarChar) { Value = item.ImageBlobName });
+                    command.Parameters.Add(new SqlParameter("@RedirectUrl", SqlDbType.NVarChar) { Value = item.RedirectUrl });
+                    command.Parameters.Add(new SqlParameter("@ActiveFrom", SqlDbType.Date) { Value = item.ActiveFrom });
+                    command.Parameters.Add(new SqlParameter("@ActiveUntil", SqlDbType.Date) { Value = item.ActiveUntil });
+                    command.Parameters.Add(new SqlParameter("@IsActive", SqlDbType.Bit) { Value = item.IsActive });
+                    command.Parameters.Add(new SqlParameter("@IsPublished", SqlDbType.Bit) { Value = item.IsPublished });
+                    command.Parameters.Add(new SqlParameter("@DisplayOrder", SqlDbType.Int) { Value = item.DisplayOrder });
+                    command.Parameters.Add(new SqlParameter("@User", SqlDbType.NVarChar) { Value = item.User });
 
                     return await command.ExecuteNonQueryAsync() > 0;
                 }

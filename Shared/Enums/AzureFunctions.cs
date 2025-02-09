@@ -14,5 +14,9 @@ namespace Shared.Enums
         DeleteAdd,
         [Description("api/FunctionGetChangeLogs")]
         GetLogs,
+        [Description("api/FunctionGetAllowedAddsRanges")]
+        GetAllowedAddsRanges,
+        [Description("api/FunctionUpdateAllowedAddsRange")]
+        UpdateAllowedAddsRange,
     }
 }

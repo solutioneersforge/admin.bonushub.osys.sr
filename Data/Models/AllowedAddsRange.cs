@@ -3,7 +3,8 @@
 public class AllowedAddsRange
 {
     public int Id { get; set; }
-    public int Minimum { get; set; }
-    public int Maximum { get; set; }
     public string Slot { get; set; }
+    public int MinimumAdds { get; set; }
+    public int MaximumAdds { get; set; }
+    public string User { get; set; }
 }

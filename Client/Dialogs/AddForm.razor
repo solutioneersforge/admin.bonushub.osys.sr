@@ -109,8 +109,8 @@
         var ranksRange = State.AllowedAddsRangePerSlot.FirstOrDefault(x => x.Slot.ToLower() == SelectedItem.AddPlacementZone.ToLower());
         if (ranksRange is null) return;
 
-        var min = ranksRange.Minimum <= 0 ? 1 : ranksRange.Minimum;
-        var max = ranksRange.Maximum;
+        var min = ranksRange.MinimumAdds <= 0 ? 1 : ranksRange.MinimumAdds;
+        var max = ranksRange.MaximumAdds;
         var ranks = Enumerable.Range(min, max).Except(UnavailableRanks).ToList();
         if (SelectedItem.Id > 0)
         {
