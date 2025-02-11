@@ -34,7 +34,7 @@
     </MudToolBar>
 
     <MudPaper Class="d-flex align-content-start flex-wrap flex-md-wrap gap-1" Style="margin:40px 0 0 10px" Elevation="0">
-        @foreach (var add in FilteredAdds)
+        @foreach (var add in FilteredAdds.OrderBy(x => x.DisplayOrder))
         {
             <AddCard Item="@add" OpenForm="@(() => OpenForm(add))" />
         }
