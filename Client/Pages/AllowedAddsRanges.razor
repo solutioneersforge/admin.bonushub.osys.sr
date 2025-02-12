@@ -7,6 +7,7 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient Http
+@inject IStringLocalizer<Resource> Localizer
 
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Text.Json
@@ -20,10 +21,10 @@
         <MudDataGrid Items="@Data" Dense Loading="_loading" LoadingProgressColor="MudBlazor.Color.Info" ReadOnly="@_loading"
                      T="AllowedAddsRange" EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick" CommittedItemChanges="@SaveChanges">
             <Columns>
-                <PropertyColumn Property="x => x.Id" Title="Id" Hidden Editable="false" />
-                <PropertyColumn Property="x => x.Slot" Editable="false" />
-                <PropertyColumn Property="x => x.MinimumAdds" Title="Min. adds" Editable Style="width:50px" />
-                <PropertyColumn Property="x => x.MaximumAdds" Title="Max. adds" Editable Style="width:100px" />
+                <PropertyColumn Property="x => x.Id" Title="@Localizer["Id"]" Hidden Editable="false" />
+                <PropertyColumn Property="x => x.Slot" Title="@Localizer["Slot"]" Editable="false" />
+                <PropertyColumn Property="x => x.MinimumAdds" Title="@Localizer["Minimum"]" Editable Style="width:50px" />
+                <PropertyColumn Property="x => x.MaximumAdds" Title="@Localizer["Maximum"]" Editable Style="width:100px" />
             </Columns>
         </MudDataGrid>
     </MudPaper>

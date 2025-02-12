@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Adds" xml:space="preserve">
+    <value>Reklamlar</value>
+  </data>
+  <data name="Adds per slot" xml:space="preserve">
+    <value>Yuva başına reklam</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Miktar</value>
+  </data>
+  <data name="AppBarTitle" xml:space="preserve">
+    <value>Yönetici Paneli</value>
+  </data>
+  <data name="Are you sure you want to update the adds-range for slot?" xml:space="preserve">
+    <value>Yuva için reklam aralığını güncellemek istediğinizden emin misiniz?</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Cancelling..." xml:space="preserve">
+    <value>İptal ediliyor...</value>
+  </data>
+  <data name="Center" xml:space="preserve">
+    <value>Orta</value>
+  </data>
+  <data name="Changelogs" xml:space="preserve">
+    <value>Değişiklik Kayıtları</value>
+  </data>
+  <data name="dark" xml:space="preserve">
+    <value>koyu</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Tamamlandı</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Düzenle</value>
+  </data>
+  <data name="Font" xml:space="preserve">
+    <value>Yazı tipi</value>
+  </data>
+  <data name="Font size" xml:space="preserve">
+    <value>Yazı tipi boyutu</value>
+  </data>
+  <data name="Good afternoon" xml:space="preserve">
+    <value>Tünaydın</value>
+  </data>
+  <data name="Good evening" xml:space="preserve">
+    <value>İyi akşamlar</value>
+  </data>
+  <data name="Good morning" xml:space="preserve">
+    <value>Günaydın</value>
+  </data>
+  <data name="Hide Menu" xml:space="preserve">
+    <value>Menüyü Gizle</value>
+  </data>
+  <data name="Id" xml:space="preserve">
+    <value>Kimlik</value>
+  </data>
+  <data name="Image background color" xml:space="preserve">
+    <value>Resim arka plan rengi</value>
+  </data>
+  <data name="Image with the following extensions is allowed:" xml:space="preserve">
+    <value>Aşağıdaki uzantılara sahip resimlere izin verilmektedir:</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>Öğe</value>
+  </data>
+  <data name="Left" xml:space="preserve">
+    <value>Sol</value>
+  </data>
+  <data name="light" xml:space="preserve">
+    <value>açık</value>
+  </data>
+  <data name="Logged in as" xml:space="preserve">
+    <value> Şu şekilde giriş yapıldı:</value>
+  </data>
+  <data name="Maximum" xml:space="preserve">
+    <value>Maksimum</value>
+  </data>
+  <data name="Minimum" xml:space="preserve">
+    <value>Minimum</value>
+  </data>
+  <data name="mode" xml:space="preserve">
+    <value>tema</value>
+  </data>
+  <data name="New value" xml:space="preserve">
+    <value>Yeni Değer</value>
+  </data>
+  <data name="No image has been selected!" xml:space="preserve">
+    <value>Hiçbir resim seçilmedi!</value>
+  </data>
+  <data name="No, cancel!" xml:space="preserve">
+    <value>Hayır, iptal et!</value>
+  </data>
+  <data name="Not published" xml:space="preserve">
+    <value>Yayınlanmadı</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Tamam</value>
+  </data>
+  <data name="Old value" xml:space="preserve">
+    <value>Eski Değer</value>
+  </data>
+  <data name="Operation" xml:space="preserve">
+    <value>İşlem</value>
+  </data>
+  <data name="Operation cancelled. Changes were not saved." xml:space="preserve">
+    <value>İşlem iptal edildi. Değişiklikler kaydedilmedi.</value>
+  </data>
+  <data name="Please provide a text for the add." xml:space="preserve">
+    <value>Lütfen ilan için bir metin girin.</value>
+  </data>
+  <data name="Please select a slot to place the image in." xml:space="preserve">
+    <value>Lütfen resmi yerleştirmek için bir yuva seçin.</value>
+  </data>
+  <data name="Published" xml:space="preserve">
+    <value>Yayınlandı</value>
+  </data>
+  <data name="Rank" xml:space="preserve">
+    <value>Sira</value>
+  </data>
+  <data name="Record Id." xml:space="preserve">
+    <value>Kayıt Kimliği</value>
+  </data>
+  <data name="Redirect URL" xml:space="preserve">
+    <value>Yönlendirme URL’si</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>Sıfırla</value>
+  </data>
+  <data name="Right" xml:space="preserve">
+    <value>Sağ</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Ara</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Ayarlar</value>
+  </data>
+  <data name="Slot" xml:space="preserve">
+    <value>Yuva</value>
+  </data>
+  <data name="Switch to" xml:space="preserve">
+    <value>Şuna geç</value>
+  </data>
+  <data name="Table" xml:space="preserve">
+    <value>Tablo</value>
+  </data>
+  <data name="Text" xml:space="preserve">
+    <value>Metin</value>
+  </data>
+  <data name="The redirect URL is missing!" xml:space="preserve">
+    <value>Yönlendirme URL’si eksik!</value>
+  </data>
+  <data name="The redirect URL must start with" xml:space="preserve">
+    <value>Yönlendirme URL’si http:// veya https:// ile başlamalıdır.</value>
+  </data>
+  <data name="Top" xml:space="preserve">
+    <value>Üst</value>
+  </data>
+  <data name="View image" xml:space="preserve">
+    <value>Resmi görüntüle</value>
+  </data>
+  <data name="Vip" xml:space="preserve">
+    <value>Vip</value>
+  </data>
+  <data name="When" xml:space="preserve">
+    <value>Ne Zaman</value>
+  </data>
+  <data name="Who" xml:space="preserve">
+    <value>Kim</value>
+  </data>
+  <data name="Yes, go ahead!" xml:space="preserve">
+    <value>Evet, devam et!</value>
+  </data>
+</root>

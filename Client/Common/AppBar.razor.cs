@@ -1,6 +1,9 @@
 ﻿using Client.Constants;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
+using System.Globalization;
+using static MudBlazor.Colors;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 
 namespace Client.Common
@@ -15,6 +18,9 @@ namespace Client.Common
 
         [Parameter]
         public bool SideBarOpen { get; set; }
+        public const string TurkishFlag = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\">\r\n                    <image xlink:href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAASlJREFUSEtjZKAxYKSx+QzDwIIbDOr/aRlMjKMWEApenEHEJMDLwOZsycAsKsjw69Rlht/nrhEyC6s8VgtYDTQYBFf0Mvz7+JnhS8cchr/3HjP8efCM4f/HzyRbgmkBExODyMkVDIx8PAxvLSMZ/r37CDeUzVyP4feFGwwM//4x/P/9hyjLMCxgUZVnEDm9iuHb3LUMn4q74IYwiwkx8NRmMrBa6DN8Lu9l+LnvJJkWqMgxiJxZzfBt/nqGT4Ud2C0o62H4uf8UeRYwMDJCgkiADxJEbz9gBtH//wz/f/0m0wIGBgZwJC/vYfj3+SvDl865DH/vPmL4c/8plSIZ6i5QJLO7WkGS6clLDL/PXyfKxeiKRosKgsFG+yAi6AQKFQyDKpPCECCoHQDYb335dyjx/gAAAABJRU5ErkJggg==\" x=\"0\" y=\"0\" width=\"24\" height=\"24\"/>\r\n                  </svg>";
+
+        public const string EnglishFlag = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\">\r\n                    <image xlink:href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAzxJREFUSEvdlWtMk1cYx3/n7UXtWkOpSAEXxM0wL9kkomkmJMt0zATJJhPoIARjYKJmuCXLrBu6DyK6zShhbkOniYoS0egXqbe5REJUEjUgulgxtTIuyhAotVwGtO+S13hpILFb0i+ej+c5z/PL+T/P+R9BiJcIcX1eAcANS7bss60hfMEsys60UfF7B0Mj/gDlylfOJP3yKbzbf1P29bYCTr6bRtGBu+Mq/N7sMLYlSkRV7EfcTMyUNQ23eLwshbBNhfwTbqTkZAvVV/5Glp/kBwuIj9axOVlPUs1xBqvsaC1vI/J3X5dz+Atz+R6k1g56Mj5m2uYCmj1QXO3iyl3PSwEmgwZbSiTW5loGdh5EFWlCX1yIOu19BOk1sk4rsT4lhqXNlzHvO4isUtG1KpdZX66g5oYb/UQVFvuJMRJtqHJSuNhMkexkdMtuZO8Ar63PRbfGSq1zgG+O3nsCeCpktFHLhg8iSLxgx3T4GP4YM71FnzEnbwne7fsCAK252RgbGlF//yu+Oy50q9LRbyygyS2Um9c5+pSy4mJj2zPAU9D0iImMdHbjcT5QtmIs8Yz+fCQAoP8ilxGHS4lLURGKLD6/zJ9tA/j9z0uKNtuOMYDxRmO47hrDlxqUkHZRAtrkxKDeqHAQHxQgqGrjHAo9IOQSvdhkSRLMmaZDJQl8nd34H3Qpl9a8FYe3rDKgyep1ObTX31Hik9+IQhNp4n7X0BiRno3pwjcnU5I5nQVRGvp/OoK37BDq2GhGvy6k17KQ1yurAqfIlo+juhZD2V7Uzhbcy1O5nZHFd+d7aHn0HCRmrv1D/nZ5LB8lGBk8fIr+0j3IksSEr/I5YJ7Pj6fbKbXOGONF9amf4B3ykZZgxLH/DKbyvYj+QbqyM7iU9CFb7R14Bn2IR929sr/uKp6Nu/Ddb2fS6izOJS9jk72Th+7hl3rR/BkGSrLieGeqBtcPlUw5dBT/lHAe5udRFTYbcW+RVR6ub2JSdio3Mz/FdqGPW639/9lNl84Lp9Qah8HTh3tLBYaa84wkzEW4FufJ3Z8XUNwkcbaxZ9xxD9ZNNSpBTlIkxemxPG5sRtr2y6vwo/1fCwg2L+Sf/r8CTnWEBLzOOgAAAABJRU5ErkJggg==\" x=\"0\" y=\"0\" width=\"24\" height=\"24\"/>\r\n                  </svg>";
 
         private readonly Action<SnackbarOptions> config = (SnackbarOptions options) =>
         {
@@ -27,12 +33,15 @@ namespace Client.Common
         private bool ShowAlertGreeting = true;
         private string GreetingText = string.Empty;
         string LoggedInUser = string.Empty;
+        CultureInfo SelectedCultureInfo = CultureInfo.CurrentCulture;
         private void CloseAlertGreeting() => ShowAlertGreeting = false;
 
         protected override async Task OnInitializedAsync()
         {
             try
             {
+                await GetSelectedCultureInfo();
+
                 //GreetingText = $"{GenerateGreetingText()}, you are logged on as {AppVars.CurrentWindowsUserAccount.ToLower()}";
                 GreetingText = $"{GenerateGreetingText()}";
 
@@ -71,7 +80,6 @@ namespace Client.Common
             }
         }
 
-
         private async Task ToggleTheme()
         {
             try
@@ -87,15 +95,38 @@ namespace Client.Common
             }
         }
 
-        private static string GenerateGreetingText()
+        private string GenerateGreetingText()
         {
             var today = DateTime.Now;
             return today.Hour switch
             {
-                >= 5 and < 12 => "Good morning",
-                >= 12 and < 18 => "Good afternoon",
-                _ => "Good evening"
+                >= 5 and < 12 => Localizer["Good morning"],
+                >= 12 and < 18 => Localizer["Good afternoon"],
+                _ => Localizer["Good evening"]
             };
+        }
+
+
+        async Task SwitchLanguage()
+        {
+            var cultures = LocalizationOptions.Value.SupportedCultures;
+            var name = await localStorage.GetItemAsync<string>("blazorCulture");
+            var value = cultures.FirstOrDefault(x => x.Name == name) ?? cultures[0];
+            if (CultureInfo.CurrentCulture != value)
+            {
+                value = value == cultures[0] ? cultures[1] : cultures[0];
+                await JS.InvokeVoidAsync("blazorCulture.set", value.Name);
+                await localStorage.SetItemAsync("blazorCulture", value.Name);
+                //await GetSelectedCultureInfo();
+            }
+
+            NavManager.NavigateTo(NavManager.Uri, forceLoad: true);
+        }
+
+        async Task GetSelectedCultureInfo()
+        {
+            var result = await localStorage.GetItemAsync<string>("blazorCulture");
+            SelectedCultureInfo = result != null ? new CultureInfo(result) : new CultureInfo("en-US");
         }
     }
 }

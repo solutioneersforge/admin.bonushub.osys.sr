@@ -7,6 +7,7 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient Http
+@inject IStringLocalizer<Resource> Localizer
 
 @using System.Text.Json
 @using Data.AzureFunctionResponse
@@ -24,21 +25,21 @@
                             ShowWeekNumbers Rounded Square Clearable
                             @bind-DateRange="SelectedDateRange" AutoClose="false" @ref="_pickerRange" Style="text-decoration:none">
             <PickerActions>
-                <MudButton Class="mr-auto align-self-start" OnClick="@(async () => {_pickerRange?.ClearAsync(); SelectedDateRange = SelectedDateRangeReset; StateHasChanged(); await LoadData();})" Style="text-decoration:none">Reset</MudButton>
-                <MudButton OnClick="@(() => _pickerRange?.CloseAsync(false))" Style="text-decoration:none">Cancel</MudButton>
-                <MudButton Color="MudBlazor.Color.Primary" OnClick="@(async () => {_pickerRange?.CloseAsync(); await LoadData();})" Style="text-decoration:none">Ok</MudButton>
+                <MudButton Class="mr-auto align-self-start" OnClick="@(async () => {_pickerRange?.ClearAsync(); SelectedDateRange = SelectedDateRangeReset; StateHasChanged(); await LoadData();})" Style="text-decoration:none">@Localizer["Reset"]</MudButton>
+                <MudButton OnClick="@(() => _pickerRange?.CloseAsync(false))" Style="text-decoration:none">@Localizer["Cancel"]</MudButton>
+                <MudButton Color="MudBlazor.Color.Primary" OnClick="@(async () => {_pickerRange?.CloseAsync(); await LoadData();})" Style="text-decoration:none">@Localizer["Ok"]</MudButton>
             </PickerActions>
         </MudDateRangePicker>
     </ToolBarContent>
     <Columns>
-        <PropertyColumn Property="x => x.Id" Title="Id" />
-        <PropertyColumn Property="x => x.TableName" Title="Table" />
-        <PropertyColumn Property="x => x.Operation" Title="Operation" />
-        <PropertyColumn Property="x => x.ChangedBy" Title="Who" />
-        <PropertyColumn Property="x => x.ChangeDate" Title="When" Format="dd MMM yyyy HH:mm:ss" />
-        <PropertyColumn Property="x => x.RecordId" Title="Record Id." />
-        <PropertyColumn Property="x => x.OldValues" Title="Old value" />
-        <PropertyColumn Property="x => x.NewValues" Title="New value" />
+        <PropertyColumn Property="x => x.Id" Title="@Localizer["Id"]" />
+        <PropertyColumn Property="x => x.TableName" Title="@Localizer["Table"]" />
+        <PropertyColumn Property="x => x.Operation" Title="@Localizer["Operation"]" />
+        <PropertyColumn Property="x => x.ChangedBy" Title="@Localizer["Who"]" />
+        <PropertyColumn Property="x => x.ChangeDate" Title="@Localizer["When"]" Format="dd MMM yyyy HH:mm:ss" />
+        <PropertyColumn Property="x => x.RecordId" Title="@Localizer["Record Id."]" />
+        <PropertyColumn Property="x => x.OldValues" Title="@Localizer["Old value"]" />
+        <PropertyColumn Property="x => x.NewValues" Title="@Localizer["New value"]" />
     </Columns>
     <PagerContent>
         <MudDataGridPager T="Changelog" />

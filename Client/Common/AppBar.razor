@@ -1,14 +1,18 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
-@inject ISnackbar SnackbarService
+﻿@inject ISnackbar SnackbarService
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
-
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IStringLocalizer<Resource> Localizer
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+@inject IOptions<RequestLocalizationOptions> LocalizationOptions
 
 <MudAppBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
-    <MudIconButton Icon="@(SideBarOpen ? @Icons.Material.Filled.MenuOpen : @Icons.Material.Filled.Menu)" Color="MudBlazor.Color.Primary" Edge="Edge.Start"
+    <MudIconButton Icon="@(SideBarOpen ? @Icons.Material.Filled.MenuOpen : @Icons.Material.Filled.Menu)"
+                   Color="MudBlazor.Color.Primary" Edge="Edge.Start"
                    OnClick="async () => await OnSideBarToggled.InvokeAsync()" />
-    <MudText>@Messages.AppBarTitle</MudText>
+    <MudText>@Localizer["AppBarTitle"]</MudText>
     <MudSpacer />
 
     @if (ShowAlertGreeting && !string.IsNullOrEmpty(GreetingText))
@@ -17,9 +21,11 @@
                   CloseIconClicked="(() => CloseAlertGreeting())">@GreetingText</MudAlert>
     }
 
+    <MudIconButton Icon="@(SelectedCultureInfo.Name == "tr" ? EnglishFlag : TurkishFlag)" OnClick="SwitchLanguage" />
+
     <AuthorizeView>
         <Authorized>
-            <MudAlert Dense NoIcon Variant="MudBlazor.Variant.Text" Square ContentAlignment="HorizontalAlignment.Center">@($"Logged in as {@context.User.Identity.Name}")</MudAlert>
+            <MudAlert Dense NoIcon Variant="MudBlazor.Variant.Text" Square ContentAlignment="HorizontalAlignment.Center">@($"{@Localizer["Logged in as"]} {@context.User.Identity.Name}")</MudAlert>
         </Authorized>
         <NotAuthorized>
             <MudTooltip Text="Login" Arrow Placement="Placement.Bottom">
@@ -27,7 +33,7 @@
             </MudTooltip>
         </NotAuthorized>
     </AuthorizeView>
-    <MudTooltip Text="@($"Switch {(StandardTheme.IsInDarkMode ? "light" : "dark")} mode")" Arrow Placement="Placement.Bottom">
+    <MudTooltip Text="@($"{@Localizer["Switch to"]} {(StandardTheme.IsInDarkMode ? @Localizer["light"] : @Localizer["dark"])} {@Localizer["mode"]}")" Arrow Placement="Placement.Bottom">
         <MudIconButton Icon="@(!StandardTheme.IsInDarkMode ? @Icons.Material.Filled.DarkMode : @Icons.Material.Filled.LightMode)" Color="MudBlazor.Color.Primary" OnClick="ToggleTheme" />
     </MudTooltip>
 </MudAppBar>

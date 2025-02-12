@@ -8,6 +8,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
+@inject IStringLocalizer<Resource> Localizer
 
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Text.Json
@@ -161,7 +162,7 @@
                 NoHeader = true,
             };
 
-        var dialog = await DialogService.ShowAsync<AddForm>($"Item: {item.LabelText}", parameters, options);
+        var dialog = await DialogService.ShowAsync<AddForm>($"{@Localizer["Item"]}: {item.LabelText}", parameters, options);
         var result = await dialog.Result;
         if (result is not null && !result.Canceled)
         {

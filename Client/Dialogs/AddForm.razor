@@ -10,13 +10,14 @@
 @using Data.AzureFunctionResponse
 @using Data.Models
 @using Microsoft.AspNetCore.Components.Forms
+@inject IStringLocalizer<Resource> Localizer
 
 <MudDialog>
 
     <DialogContent>
         <MudStack Row>
             <MudStack Spacing="0">
-                <MudText Align="MudBlazor.Align.Center" Typo="Typo.caption">Rank</MudText>
+                <MudText Align="MudBlazor.Align.Center" Typo="Typo.caption">@Localizer["Rank"]</MudText>
                 <MudAlert Square NoIcon Dense Variant="Variant.Outlined" OnClick="PickRank">@SelectedItem.DisplayOrder</MudAlert>
             </MudStack>
 
@@ -38,13 +39,13 @@
 
         <MudImage Style="@($"background-color: {SelectedItem.ImageBgColor};")" hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Height="200" Width="400" Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25" Class="rounded-lg" />
 
-        <MudColorPicker ShowToolbar="true" Label="Image background color" PickerVariant="PickerVariant.Dialog" @bind-Text="@SelectedItem.ImageBgColor" />
-        <MudTextField @bind-Value="@SelectedItem.LabelText" Label="Text" Required Variant="Variant.Text" Margin="Margin.Dense" />
-        <MudTextField @bind-Value="@SelectedItem.BonusAmountText" Label="Amount" Variant="Variant.Text" Margin="Margin.Dense" />
-        <MudTextField @bind-Value="@SelectedItem.FontFamily" Label="Font" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="@MudBlazor.Color.Default" OnAdornmentClick="PickFont" />
-        <MudTextField @bind-Value="@SelectedItem.FontSize" Label="Font size" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" />
-        <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="Redirect url" Required AutoFocus Margin="Margin.Dense" />
-        <MudSwitch Label="@(SelectedItem.IsPublished ? "Published" : "Not published")" Size="MudBlazor.Size.Medium" @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Add : @Icons.Material.Filled.Remove)"
+        <MudColorPicker ShowToolbar="true" Label="@Localizer["Image background color"]" PickerVariant="PickerVariant.Dialog" @bind-Text="@SelectedItem.ImageBgColor" />
+        <MudTextField @bind-Value="@SelectedItem.LabelText" Label="@Localizer["Text"]" Required Variant="Variant.Text" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="@SelectedItem.BonusAmountText" Label="@Localizer["Amount"]" Variant="Variant.Text" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="@SelectedItem.FontFamily" Label="@Localizer["Font"]" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="@MudBlazor.Color.Default" OnAdornmentClick="PickFont" />
+        <MudTextField @bind-Value="@SelectedItem.FontSize" Label="@Localizer["Font size"]" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="@Localizer["Redirect url"]" Required AutoFocus Margin="Margin.Dense" />
+        <MudSwitch Label="@(SelectedItem.IsPublished ? Localizer["Published"] : Localizer["Not published"])" Size="MudBlazor.Size.Medium" @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Add : @Icons.Material.Filled.Remove)"
                    ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
     </DialogContent>
     <DialogActions>
@@ -148,42 +149,42 @@
             if (string.IsNullOrEmpty(SelectedItem.LabelText))
             {
                 SnackbarService.Clear();
-                SnackbarService.Add("Please provide a text for the add/bonus.", Severity.Info, configure: config);
+                SnackbarService.Add($"{Localizer["Please provide a text for the add."]}", Severity.Info, configure: config);
                 return;
             }
 
             if (string.IsNullOrEmpty(SelectedItem.RedirectUrl))
             {
                 SnackbarService.Clear();
-                SnackbarService.Add("The redirect URL is missing!", Severity.Info, configure: config);
+                SnackbarService.Add($"{Localizer["The redirect URL is missing!"]}", Severity.Info, configure: config);
                 return;
             }
 
             if (!SelectedItem.RedirectUrl.StartsWith("http"))
             {
                 SnackbarService.Clear();
-                SnackbarService.Add("The redirect URL must start with http:// or https://", Severity.Info, configure: config);
-                return;
+                SnackbarService.Add($"{Localizer["The redirect URL must start with"]}", Severity.Info, configure: config);
+            return;
             }
 
             if (string.IsNullOrEmpty(SelectedImageSrc))
             {
                 SnackbarService.Clear();
-                SnackbarService.Add("No image has been selected!", Severity.Info, configure: config);
+                SnackbarService.Add($"{Localizer["No image has been selected!"]}", Severity.Info, configure: config);
                 return;
             }
 
             if (FixedItems.AllowedImageExtensions.Split(",", StringSplitOptions.TrimEntries).FirstOrDefault(x => SelectedItem.ImageFileName.ToLower().EndsWith(x)) is null)
             {
                 SnackbarService.Clear();
-                SnackbarService.Add($"Image with the following extensions is allowed: {FixedItems.AllowedImageExtensions}!", Severity.Info, configure: config);
+                SnackbarService.Add($"{Localizer["Image with the following extensions is allowed:"]} {FixedItems.AllowedImageExtensions}!", Severity.Info, configure: config);
                 return;
             }
 
             if (string.IsNullOrEmpty(SelectedItem.AddPlacementZone))
             {
                 SnackbarService.Clear();
-                SnackbarService.Add("Please select a zone to place the image in.", Severity.Info, configure: config);
+                SnackbarService.Add($"{Localizer["Please select a slot to place the image in."]}", Severity.Info, configure: config);
                 return;
             }
 
@@ -224,7 +225,7 @@
         catch (OperationCanceledException)
         {
             SnackbarService.Clear();
-            SnackbarService.Add("Operation cancelled. Changes were not saved.", Severity.Info, configure: config);
+            SnackbarService.Add($"{Localizer["Operation cancelled. Changes were not saved."]}", Severity.Info, configure: config);
         }
         catch (Exception ex)
         {
@@ -243,7 +244,7 @@
         if (SaveInProgress)
         {
             SnackbarService.Clear();
-            SnackbarService.Add("Cancelling...", Severity.Info, configure: config); await AbortTokenSource.CancelAsync();
+            SnackbarService.Add($"{Localizer["Cancelling..."]}", Severity.Info, configure: config); await AbortTokenSource.CancelAsync();
             return;
         }
 

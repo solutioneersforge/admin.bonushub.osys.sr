@@ -1,23 +1,25 @@
-﻿<MudDrawer Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")" @bind-Open="SideBarOpen" Fixed Elevation="0"
+﻿@inject IStringLocalizer<Resource> Localizer
+
+<MudDrawer Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")" @bind-Open="SideBarOpen" Fixed Elevation="0"
            Variant="@DrawerVariant.Responsive" OpenMiniOnHover>
 
     <MudDrawerHeader>
-        <MudTooltip Text="Hide Menu" Arrow>
+        <MudTooltip Text="@Localizer["Hide Menu"]" Arrow>
             <MudFab IconColor="MudBlazor.Color.Error" Size="MudBlazor.Size.Small" IconSize="MudBlazor.Size.Small" StartIcon="@Icons.Material.Filled.Close" OnClick="async () => await OnSideBarToggled.InvokeAsync()" />
         </MudTooltip>
     </MudDrawerHeader>
 
     <MudNavMenu>
-        <MudNavGroup Icon="@Icons.Material.Filled.ViewList" Expanded Title="Adds">
-            <MudNavLink Href="/vipadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Vip)">@PlacementZone.Vip.GetDescription()</MudNavLink>
-            <MudNavLink Href="/topadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Top)">@PlacementZone.Top.GetDescription()</MudNavLink>
-            <MudNavLink Href="/centeradds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Center)">@PlacementZone.Center.GetDescription()</MudNavLink>
-            <MudNavLink Href="/rightadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Right)">@PlacementZone.Right.GetDescription()</MudNavLink>
-            <MudNavLink Href="/leftadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Left)">@PlacementZone.Left.GetDescription()</MudNavLink>
+        <MudNavGroup Icon="@Icons.Material.Filled.ViewList" Expanded Title="@Localizer["Adds"]">
+            <MudNavLink Href="/vipadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Vip)">@Localizer[PlacementZone.Vip.GetDescription()]</MudNavLink>
+            <MudNavLink Href="/topadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Top)">@Localizer[@PlacementZone.Top.GetDescription()]</MudNavLink>
+            <MudNavLink Href="/centeradds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Center)">@Localizer[@PlacementZone.Center.GetDescription()]</MudNavLink>
+            <MudNavLink Href="/rightadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Right)">@Localizer[@PlacementZone.Right.GetDescription()]</MudNavLink>
+            <MudNavLink Href="/leftadds" Match="NavLinkMatch.Prefix" Ripple Icon="@HelperFunctions.GetPlacementZoneIcon(PlacementZone.Left)">@Localizer[@PlacementZone.Left.GetDescription()]</MudNavLink>
         </MudNavGroup>
-        <MudNavLink Href="/changelogs" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.TrackChanges">Changelogs</MudNavLink>
-        <MudNavGroup Icon="@Icons.Material.Filled.Settings" Expanded Title="Settings">
-            <MudNavLink Href="/allowedaddsranges" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.DataThresholding">Adds per slot</MudNavLink>
+        <MudNavLink Href="/changelogs" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.TrackChanges">@Localizer["Changelogs"]</MudNavLink>
+        <MudNavGroup Icon="@Icons.Material.Filled.Settings" Expanded Title=@Localizer["Settings"]>
+            <MudNavLink Href="/allowedaddsranges" Match="NavLinkMatch.Prefix" Ripple Icon="@Icons.Material.Filled.DataThresholding">@Localizer["Adds per slot"]</MudNavLink>
         </MudNavGroup>
     </MudNavMenu>
 </MudDrawer>

@@ -1,11 +1,14 @@
-﻿@inject ISnackbar SnackbarService
+﻿
+
+@inject ISnackbar SnackbarService
 @inject IDialogService DialogService
+@inject IStringLocalizer<Resource> Localizer
 
 <MudCard Square Style="width: 350px; height: 200px;margin:5px">
     <MudCardHeader>
         <CardHeaderAvatar>
             <MudStack Spacing="0">
-                <MudText Align="MudBlazor.Align.Center" Typo="Typo.caption">Rank</MudText>
+                <MudText Align="MudBlazor.Align.Center" Typo="Typo.caption">@Localizer["Rank"]</MudText>
                 <MudAvatar Square Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default" Variant="Variant.Outlined">@Item.DisplayOrder</MudAvatar>
             </MudStack>
         </CardHeaderAvatar>
