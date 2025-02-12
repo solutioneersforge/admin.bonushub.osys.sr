@@ -44,7 +44,7 @@
         <MudTextField @bind-Value="@SelectedItem.BonusAmountText" Label="@Localizer["Amount"]" Variant="Variant.Text" Margin="Margin.Dense" />
         <MudTextField @bind-Value="@SelectedItem.FontFamily" Label="@Localizer["Font"]" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="@MudBlazor.Color.Default" OnAdornmentClick="PickFont" />
         <MudTextField @bind-Value="@SelectedItem.FontSize" Label="@Localizer["Font size"]" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" />
-        <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="@Localizer["Redirect url"]" Required AutoFocus Margin="Margin.Dense" />
+        <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="@Localizer["Redirect URL"]" Required AutoFocus Margin="Margin.Dense" />
         <MudSwitch Label="@(SelectedItem.IsPublished ? Localizer["Published"] : Localizer["Not published"])" Size="MudBlazor.Size.Medium" @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Add : @Icons.Material.Filled.Remove)"
                    ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
     </DialogContent>

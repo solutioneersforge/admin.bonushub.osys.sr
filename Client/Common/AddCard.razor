@@ -21,8 +21,8 @@
     <MudCardActions>
         <MudIcon Color="@(Item.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" Icon="@(Item.IsPublished ? Icons.Material.Filled.Add : Icons.Material.Filled.Remove)" />
         <MudSpacer />
-        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="Variant.Filled" Size="MudBlazor.Size.Small" IconSize="MudBlazor.Size.Small" StartIcon="@Icons.Material.Filled.Image" Color="MudBlazor.Color.Default" OnClick="@DisplayImage">View Image</MudButton>
-        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="Variant.Filled" Size="MudBlazor.Size.Small" IconSize="MudBlazor.Size.Small" StartIcon="@Icons.Material.Filled.Edit" Color="MudBlazor.Color.Default" OnClick="@FormOpened">Edit</MudButton>
+        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="Variant.Filled" Size="MudBlazor.Size.Small" IconSize="MudBlazor.Size.Small" StartIcon="@Icons.Material.Filled.Image" Color="MudBlazor.Color.Default" OnClick="@DisplayImage">@Localizer["View image"]</MudButton>
+        <MudButton Style="@Styles.StandardButtonNoColorStyle" Variant="Variant.Filled" Size="MudBlazor.Size.Small" IconSize="MudBlazor.Size.Small" StartIcon="@Icons.Material.Filled.Edit" Color="MudBlazor.Color.Default" OnClick="@FormOpened">@Localizer["Edit"]</MudButton>
     </MudCardActions>
 </MudCard>
 
