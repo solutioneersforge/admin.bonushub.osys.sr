@@ -117,7 +117,6 @@ namespace Client.Common
                 value = value == cultures[0] ? cultures[1] : cultures[0];
                 await JS.InvokeVoidAsync("blazorCulture.set", value.Name);
                 await localStorage.SetItemAsync("blazorCulture", value.Name);
-                //await GetSelectedCultureInfo();
             }
 
             NavManager.NavigateTo(NavManager.Uri, forceLoad: true);

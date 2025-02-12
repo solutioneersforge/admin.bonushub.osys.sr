@@ -21,7 +21,7 @@
                   CloseIconClicked="(() => CloseAlertGreeting())">@GreetingText</MudAlert>
     }
 
-    <MudIconButton Icon="@(SelectedCultureInfo.Name == "tr" ? EnglishFlag : TurkishFlag)" OnClick="SwitchLanguage" />
+    <MudIconButton Icon="@(SelectedCultureInfo.Name.StartsWith("tr") ? EnglishFlag : TurkishFlag)" OnClick="SwitchLanguage" />
 
     <AuthorizeView>
         <Authorized>

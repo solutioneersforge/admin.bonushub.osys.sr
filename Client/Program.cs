@@ -9,6 +9,7 @@ using Microsoft.JSInterop;
 using MudBlazor.Services;
 using System.Globalization;
 using TextCopy;
+using static MudBlazor.Colors;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("app");
@@ -44,6 +45,8 @@ var culture = CultureInfo.GetCultureInfo(result ?? defaultCulture);
 if (result == null)
 {
     await js.InvokeVoidAsync("blazorCulture.set", defaultCulture);
+    var l = host.Services.GetRequiredService<ILocalStorageService>();
+    await l.SetItemAsync("blazorCulture", defaultCulture);
 }
 
 CultureInfo.DefaultThreadCurrentCulture = culture;
