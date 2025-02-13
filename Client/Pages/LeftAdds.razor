@@ -193,7 +193,19 @@
     async Task ShowPublishedAddsOnly()
     {
         _showPublishedAddsOnly = !_showPublishedAddsOnly;
-        await LoadData();
+        try
+        {
+            _loading = true;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 }
 

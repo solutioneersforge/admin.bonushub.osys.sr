@@ -11,9 +11,11 @@
 @inject IJSRuntime JSRuntime
 
 <MudAppBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
+
     <MudIconButton Icon="@(SideBarOpen ? @Icons.Material.Filled.MenuOpen : @Icons.Material.Filled.Menu)"
                    Color="MudBlazor.Color.Primary" Edge="Edge.Start"
-                   OnClick="async () => await OnSideBarToggled.InvokeAsync()" />
+                   OnClick="async () => await OnSideBarToggled.InvokeAsync()" hidden="@IsLoadingSettings"/>
+
     <MudText>@Localizer["AppBarTitle"]</MudText>
     <MudSpacer />
 

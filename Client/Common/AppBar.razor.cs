@@ -135,8 +135,7 @@ namespace Client.Common
                 setting = settingValues.FirstOrDefault();
                 if (setting is not null)
                 {
-                    var AzureStorageContainerPath = JsonSerializer.Deserialize<string>(setting.SettingValue);
-                    await LocalStorage.SetItemAsStringAsync(Settings.AzureStorageContainerPath.GetDescription(), JsonSerializer.Serialize(setting.SettingValue));
+                    await LocalStorage.SetItemAsStringAsync(Settings.AzureStorageContainerPath.GetDescription(), setting.SettingValue);
                 }
             }
             catch (Exception ex)
