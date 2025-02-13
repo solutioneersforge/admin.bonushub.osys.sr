@@ -17,6 +17,10 @@ namespace Shared.Enums
         [Description("api/FunctionGetAllowedAddsRanges")]
         GetAllowedAddsRanges,
         [Description("api/FunctionUpdateAllowedAddsRange")]
-        UpdateAllowedAddsRange,
+        UpdateAllowedAddsRange, 
+        [Description("api/FunctionGetSettingsByName")]
+        GetSettingsByName,
+        [Description("api/FunctionUpdateSettingsByName")]
+        UpdateSettingsByName,
     }
 }

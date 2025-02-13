@@ -1,0 +1,260 @@
+﻿@page "/imagesettings"
+
+@attribute [Authorize(Roles = "admin")]
+
+@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+@inject IStringLocalizer<Resource> Localizer
+@inject ILocalStorageService LocalStorage
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Text.Json
+@using Data.AzureFunctionResponse
+@using Data.Models
+
+@implements IDisposable
+
+@if (_loading)
+{
+    <center>
+        <div class="wrapper"><AtomLoading Size="50" /></div>
+    </center>
+}
+
+@if (!_loading)
+{
+    <MudContainer Class="mt-8">
+        <MudPaper Class="d-flex flex-wrap gap-4">
+            <MudTextField Disabled="@(_saving || _loading)" T="int" Label="@Localizer["Image minimum width"]" @bind-Value="@ImageDimensions.MinWidth" />
+            <MudTextField Disabled="@(_saving || _loading)" T="int" Label="@Localizer["Image maximum width"]" @bind-Value="@ImageDimensions.MaxWidth" />
+            <MudTextField Disabled="@(_saving || _loading)" T="int" Label="@Localizer["Image minimum height"]" @bind-Value="@ImageDimensions.MinHeight" />
+            <MudTextField Disabled="@(_saving || _loading)" T="int" Label="@Localizer["Image maximum height"]" @bind-Value="@ImageDimensions.MaxHeight" />
+            <MudTextField Disabled="@(_saving || _loading)" T="int" Label="@Localizer["Image maximum filesize"]" @bind-Value="@ImageMaxFilesize" />
+            <MudStack Row>
+                <MudButton StartIcon="@Icons.Material.Filled.Save" Disabled="@(_saving || _loading)" style="@Styles.StandardButtonNoColorStyle" OnClick="SaveChanges">@Localizer["Save"]</MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+
+    <MudContainer Class="mt-4">
+        <center>
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">@Localizer["Default image"]</MudText>
+                    <MudText Typo="Typo.body2">@Localizer["The default image should be .png file."]</MudText>
+                </MudCardContent>
+                <MudImage Style="margin:5px;" hidden="@(string.IsNullOrEmpty(SelectedImageSrc))"
+                          Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Src="@SelectedImageSrc" />
+                <MudCardActions>
+                    <MudSpacer />
+                    @if (_saving || _uploading)
+                    {
+                        <CameraLoading Size="30" />
+                    }
+                    else
+                    {
+                        <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png" Required>
+                            <ActivatorContent>
+                                <MudButton StartIcon="@Icons.Material.Filled.PhotoCamera" Style="@Styles.StandardButtonNoColorStyle">@Localizer["Upload an image"]</MudButton>
+                            </ActivatorContent>
+                        </MudFileUpload>
+                    }
+                    <MudButton StartIcon="@Icons.Material.Filled.Save" Disabled="@(_saving || _uploading)" Style="@Styles.StandardButtonNoColorStyle" OnClick="@StoreImage">@Localizer["Save"]</MudButton>
+                </MudCardActions>
+            </MudCard>
+
+        </center>
+    </MudContainer>
+}
+
+
+@code {
+    [CascadingParameter] public Client.States.States State { get; set; } = new();
+    readonly Action<SnackbarOptions> config = (SnackbarOptions options) =>
+     {
+         options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+         options.ShowCloseIcon = true;
+     };
+
+    CancellationTokenSource AbortTokenSource = new();
+
+    bool _loading, _saving, _uploading;
+    string LoggedInUser = string.Empty;
+    string SelectedImageSrc = string.Empty;
+    string AzureStorageContainerPath = string.Empty;
+    string default_image = "default_image";
+    string default_image_fileextention = ".png";
+
+    ImageDimension ImageDimensions = new();
+    int ImageMaxFilesize;
+    IBrowserFile ImageFile = null!;
+    IList<AllowedAddsRange> Data = [];
+    IEnumerable<AllowedAddsRange> DataCopy = [];
+
+    protected override void OnParametersSet() => State.OnThemeChanged += HandleEvent;
+    void IDisposable.Dispose() => State.OnThemeChanged -= HandleEvent;
+    async Task HandleEvent() => await Task.CompletedTask;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            SnackbarService.Clear();
+
+#if !DEBUG
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity == null || !user.Identity.IsAuthenticated)
+            {
+                NavigationManager.NavigateTo("/.auth/login/aad", true);
+                return;
+            }
+
+            if (user.Identity != null && user.Identity.IsAuthenticated)
+            {
+                LoggedInUser = user.Identity.Name;
+            }
+#endif
+
+            _loading = true;
+
+            var storedPath = await LocalStorage.GetItemAsync<string>(Settings.AzureStorageContainerPath.GetDescription());
+            if (!string.IsNullOrEmpty(storedPath))
+            {
+                AzureStorageContainerPath = storedPath;
+                SelectedImageSrc = $"{AzureStorageContainerPath}{default_image}{default_image_fileextention}";
+            }
+
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Clear();
+            SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    async Task LoadData()
+    {
+        var func = AzureFunctions.GetSettingsByName.GetName();
+
+        var response = await Http.GetStringAsync($"{func}/{Settings.ImageDimensions.GetDescription()}");
+        var settingData = JsonSerializer.Deserialize<AfrSetting>(response);
+        var settingValues = settingData?.Value.ToList() ?? [];
+        var setting = settingValues.FirstOrDefault();
+        if (setting is not null)
+        {
+            ImageDimensions = JsonSerializer.Deserialize<ImageDimension>(setting.SettingValue) ?? new ImageDimension { MinHeight = 150, MinWidth = 150, MaxHeight = 200, MaxWidth = 200 };
+            await LocalStorage.SetItemAsStringAsync(Settings.ImageDimensions.GetDescription(), JsonSerializer.Serialize(ImageDimensions));
+        }
+
+        response = await Http.GetStringAsync($"{func}/{Settings.ImageMaxFilesize.GetDescription()}");
+        settingData = JsonSerializer.Deserialize<AfrSetting>(response);
+        settingValues = settingData?.Value.ToList() ?? [];
+        setting = settingValues.FirstOrDefault();
+        if (setting is not null)
+        {
+            ImageMaxFilesize = JsonSerializer.Deserialize<int>(setting.SettingValue);
+            await LocalStorage.SetItemAsStringAsync(Settings.ImageMaxFilesize.GetDescription(), JsonSerializer.Serialize(ImageMaxFilesize));
+        }
+    }
+
+    async Task SaveChanges()
+    {
+        CancellationToken cancellationToken = AbortTokenSource.Token;
+
+        try
+        {
+            _saving = true;
+            var item = new Setting()
+                {
+                    SettingName = Settings.ImageDimensions.GetDescription(),
+                    SettingValue = JsonSerializer.Serialize(ImageDimensions)
+                };
+            var func = AzureFunctions.UpdateSettingsByName.GetName();
+            var response = await Http.PostAsJsonAsync(func, item, cancellationToken);
+
+            item = new Setting()
+                {
+                    SettingName = Settings.ImageMaxFilesize.GetDescription(),
+                    SettingValue = ImageMaxFilesize.ToString()
+                };
+            response = await Http.PostAsJsonAsync(func, item, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Clear();
+            SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        await LoadData();
+    }
+
+    async Task UploadImageFile(IBrowserFile file)
+    {
+        if (file is not null)
+        {
+            try
+            {
+                _uploading = true;
+                ImageFile = file;
+                using (var stream = ImageFile.OpenReadStream())
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await stream.CopyToAsync(memoryStream);
+                        byte[] imageBytes = memoryStream.ToArray();
+                        SelectedImageSrc = $"data:{file.ContentType};base64,{Convert.ToBase64String(imageBytes)}";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SnackbarService.Clear();
+                SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+            }
+            finally
+            {
+                _uploading = false;
+            }
+        }
+    }
+
+    async Task StoreImage()
+    {
+        if (ImageFile is null) return;
+
+        try
+        {
+            _saving = true;
+            var item = new Add { ImageBlobName = $"{nameof(default_image)}{Path.GetExtension(ImageFile.Name)}", ImageAsBase64String = string.Empty };
+            item.ImageAsBase64String = SelectedImageSrc.Replace($"data:{ImageFile.ContentType};base64,", "");
+            var func = AzureFunctions.StoreImage.GetName();
+            var response = await Http.PostAsJsonAsync(func, item, AbortTokenSource.Token);
+
+            SelectedImageSrc = $"{AzureStorageContainerPath}{default_image}{default_image_fileextention}"; StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Clear();
+            SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}
+

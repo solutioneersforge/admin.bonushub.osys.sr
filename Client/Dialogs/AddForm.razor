@@ -11,6 +11,8 @@
 @using Data.Models
 @using Microsoft.AspNetCore.Components.Forms
 @inject IStringLocalizer<Resource> Localizer
+@inject IJSRuntime JSRuntime
+@inject ILocalStorageService LocalStorage
 
 <MudDialog>
 
@@ -18,26 +20,28 @@
         <MudStack Row>
             <MudStack Spacing="0">
                 <MudText Align="MudBlazor.Align.Center" Typo="Typo.caption">@Localizer["Rank"]</MudText>
-                <MudAlert Square NoIcon Dense Variant="Variant.Outlined" OnClick="PickRank">@SelectedItem.DisplayOrder</MudAlert>
+                <MudAlert ContentAlignment="HorizontalAlignment.Center" Square NoIcon Dense Variant="Variant.Outlined" OnClick="PickRank">@SelectedItem.DisplayOrder</MudAlert>
             </MudStack>
 
-            @if (SaveInProgress)
-            {
-                <MudProgressCircular Indeterminate Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" />
-            }
-            else
-            {
-                <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png, .apng, .jpg, .jpeg, .jpe, .jif, .jfif, .svg, .webp, .bmp, .tif, .tiff, .avif, .xbm" Required>
-                    <ActivatorContent>
-                        <MudIconButton Color="MudBlazor.Color.Info"
-                                       Icon="@Icons.Material.Filled.PhotoCamera">
-                        </MudIconButton>
-                    </ActivatorContent>
-                </MudFileUpload>
-            }
+            <center>
+                @if (SaveInProgress)
+                {
+                    <div class="wrapper" style="margin-top:25px"><CameraLoading Size="30" /></div>
+                }
+                else
+                {
+                    <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png, .apng, .jpg, .jpeg, .jpe, .jif, .jfif, .svg, .webp, .bmp, .tif, .tiff, .avif, .xbm" Required>
+                        <ActivatorContent>
+                            <MudIconButton Color="MudBlazor.Color.Info" Style="margin-top:25px" Size="MudBlazor.Size.Small"
+                            Icon="@Icons.Material.Filled.PhotoCamera">
+                            </MudIconButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                }
+            </center>
         </MudStack>
 
-        <MudImage Style="@($"background-color: {SelectedItem.ImageBgColor};")" hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Height="200" Width="400" Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25" Class="rounded-lg" />
+        <MudImage Style="@($"background-color: {SelectedItem.ImageBgColor};margin:5px;")" hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25" Class="rounded-lg" />
 
         <MudColorPicker ShowToolbar="true" Label="@Localizer["Image background color"]" PickerVariant="PickerVariant.Dialog" @bind-Text="@SelectedItem.ImageBgColor" />
         <MudTextField @bind-Value="@SelectedItem.LabelText" Label="@Localizer["Text"]" Required Variant="Variant.Text" Margin="Margin.Dense" />
@@ -46,7 +50,7 @@
         <MudTextField @bind-Value="@SelectedItem.FontSize" Label="@Localizer["Font size"]" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" />
         <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="@Localizer["Redirect URL"]" Required AutoFocus Margin="Margin.Dense" />
         <MudSwitch Label="@(SelectedItem.IsPublished ? Localizer["Published"] : Localizer["Not published"])" Size="MudBlazor.Size.Medium" @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Add : @Icons.Material.Filled.Remove)"
-                   ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
+        ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
     </DialogContent>
     <DialogActions>
         <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Restore" Color="MudBlazor.Color.Info" OnClick="Reset" Disabled="@SaveInProgress" />
@@ -68,6 +72,7 @@
     {
         options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
         options.ShowCloseIcon = true;
+        options.HideIcon = true;
     };
 
     IBrowserFile ImageFile = null!;
@@ -75,10 +80,65 @@
 
     string SelectedImageSrc = string.Empty;
     string LoggedInUser = string.Empty;
+    string ImageLimitationText = string.Empty;
+    string default_image = "default_image";
+    string default_image_fileextention = ".png";
     bool SaveInProgress = false; bool DoNotCloseForm = false;
     int NumberOfNewItemsSaved;
     CancellationTokenSource AbortTokenSource = new();
     List<int> AvailableRanks = [];
+    ImageDimension ImageDimensions = new();
+    int ImageMaxFilesize = 10;
+    long MaxFileSize = 1024 * 1024; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        SnackbarService.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+
+        var storedPath = await LocalStorage.GetItemAsync<string>(Settings.AzureStorageContainerPath.GetDescription());
+        if (!string.IsNullOrEmpty(storedPath))
+        {
+            SelectedImageSrc = $"{storedPath}{default_image}{default_image_fileextention}";
+        }
+
+        var jsonString = await LocalStorage.GetItemAsync<string>(Settings.ImageDimensions.GetDescription());
+        if (!string.IsNullOrEmpty(jsonString))
+        {
+            ImageDimensions = JsonSerializer.Deserialize<ImageDimension>(jsonString) ?? new();
+        }
+
+        jsonString = await LocalStorage.GetItemAsync<string>(Settings.ImageMaxFilesize.GetDescription());
+        if (!string.IsNullOrEmpty(jsonString))
+        {
+            ImageMaxFilesize = JsonSerializer.Deserialize<int>(jsonString);
+            if (ImageMaxFilesize <= 0)
+            {
+                ImageMaxFilesize = 10;
+            }
+        }
+        MaxFileSize = ImageMaxFilesize * MaxFileSize;
+
+        jsonString = await LocalStorage.GetItemAsync<string>(Settings.AllowedAddsRangePerSlot.GetDescription());
+        if (!string.IsNullOrEmpty(jsonString))
+        {
+            var ranges = JsonSerializer.Deserialize<List<AllowedAddsRange>>(jsonString);
+            if (ranges is not null)
+            {
+                var ranksRange = ranges.FirstOrDefault(x => x.Slot.ToLower() == SelectedItem.AddPlacementZone.ToLower());
+                if (ranksRange is null) return;
+
+                var min = ranksRange.MinimumAdds <= 0 ? 1 : ranksRange.MinimumAdds;
+                var max = ranksRange.MaximumAdds;
+                var ranks = Enumerable.Range(min, max).Except(UnavailableRanks).ToList();
+                if (SelectedItem.Id > 0)
+                {
+                    AvailableRanks.AddRange(ranks.Concat(new[] { SelectedItem.DisplayOrder }).OrderBy(x => x));
+                    return;
+                }
+                AvailableRanks.AddRange(ranks.OrderBy(x => x));
+            }
+        }
+    }
 
     protected override void OnParametersSet()
     {
@@ -106,36 +166,57 @@
                 ImageBgColor = SelectedItem.ImageBgColor,
                 RedirectUrl = SelectedItem.RedirectUrl
             };
-
-        var ranksRange = State.AllowedAddsRangePerSlot.FirstOrDefault(x => x.Slot.ToLower() == SelectedItem.AddPlacementZone.ToLower());
-        if (ranksRange is null) return;
-
-        var min = ranksRange.MinimumAdds <= 0 ? 1 : ranksRange.MinimumAdds;
-        var max = ranksRange.MaximumAdds;
-        var ranks = Enumerable.Range(min, max).Except(UnavailableRanks).ToList();
-        if (SelectedItem.Id > 0)
-        {
-            AvailableRanks.AddRange(ranks.Concat(new[] { SelectedItem.DisplayOrder }).OrderBy(x => x));
-            return;
-        }
-        AvailableRanks.AddRange(ranks.OrderBy(x => x));
     }
 
     async Task UploadImageFile(IBrowserFile file)
     {
         if (file is not null)
         {
-            ImageFile = file;
-            SelectedItem.ImageFileName = ImageFile.Name;
-            SelectedItem.ImageBlobName = $"{Guid.NewGuid()}{Path.GetExtension(ImageFile.Name)}";
-            using (var stream = ImageFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)) // 10 MB limit
+            if (file.Size > MaxFileSize)
             {
-                using (var memoryStream = new MemoryStream())
+                SnackbarService.Clear();
+                SnackbarService.Add($"{Localizer["The file size of the image exceeds the limit of"]} {ImageMaxFilesize} MB!", Severity.Info, configure: config);
+                return;
+            }
+
+            try
+            {
+                SaveInProgress = true;
+                ImageFile = file;
+                SelectedItem.ImageFileName = ImageFile.Name;
+                SelectedItem.ImageBlobName = $"{Guid.NewGuid()}{Path.GetExtension(ImageFile.Name)}";
+                using (var stream = ImageFile.OpenReadStream(maxAllowedSize: MaxFileSize))
                 {
-                    await stream.CopyToAsync(memoryStream);
-                    byte[] imageBytes = memoryStream.ToArray();
-                    SelectedImageSrc = $"data:{file.ContentType};base64,{Convert.ToBase64String(imageBytes)}";
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await stream.CopyToAsync(memoryStream);
+                        byte[] imageBytes = memoryStream.ToArray();
+                        SelectedImageSrc = $"data:{file.ContentType};base64,{Convert.ToBase64String(imageBytes)}";
+
+                        var ResizedImageDataUrl = await JSRuntime.InvokeAsync<string>(
+                            "resizeImageFromBase64",
+                            SelectedImageSrc,
+                            ImageDimensions.MinWidth,
+                            ImageDimensions.MinHeight,
+                            ImageDimensions.MaxWidth,
+                            ImageDimensions.MaxHeight
+                        );
+
+                        if (!string.IsNullOrEmpty(ResizedImageDataUrl))
+                        {
+                            SelectedImageSrc = ResizedImageDataUrl;
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                SnackbarService.Clear();
+                SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+            }
+            finally
+            {
+                SaveInProgress = false;
             }
         }
     }
@@ -164,7 +245,7 @@
             {
                 SnackbarService.Clear();
                 SnackbarService.Add($"{Localizer["The redirect URL must start with"]}", Severity.Info, configure: config);
-            return;
+                return;
             }
 
             if (string.IsNullOrEmpty(SelectedImageSrc))

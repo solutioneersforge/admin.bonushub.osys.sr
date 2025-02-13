@@ -1,9 +1,13 @@
 ﻿using Client.Constants;
+using Data.AzureFunctionResponse;
+using Data.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
+using Shared.Enums;
+using Shared.Extentions;
 using System.Globalization;
-using static MudBlazor.Colors;
+using System.Text.Json;
 using ComponentBase = Microsoft.AspNetCore.Components.ComponentBase;
 
 namespace Client.Common
@@ -31,6 +35,7 @@ namespace Client.Common
         private static System.Timers.Timer timerGreeting = new();
         private int counterGreeting = 0;
         private bool ShowAlertGreeting = true;
+        private bool IsLoadingSettings;
         private string GreetingText = string.Empty;
         string LoggedInUser = string.Empty;
         CultureInfo SelectedCultureInfo = CultureInfo.CurrentCulture;
@@ -63,12 +68,22 @@ namespace Client.Common
                 };
                 timerGreeting.Start();
 
+#if DEBUG
+                await LoadSettings();
+#endif
+
+#if !DEBUG
                 var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
                 var user = authState.User;
                 if (user.Identity != null && user.Identity.IsAuthenticated)
                 {
-                    LoggedInUser = user.Identity.Name;
+                    LoggedInUser = user.Identity?.Name ?? string.Empty;
+
+                    if (string.IsNullOrEmpty(LoggedInUser)) return;
+
+                    await LoadSettings();
                 }
+#endif
             }
             catch
             {
@@ -77,6 +92,61 @@ namespace Client.Common
             finally
             {
                 //ApplicationState.IsAppBarLoadCompleted = true; ShowDbConnectionAlert = true; LoadingProgressMessage = string.Empty;
+            }
+        }
+
+        async Task LoadSettings()
+        {
+            try
+            {
+                IsLoadingSettings = true;
+                var func = AzureFunctions.GetAllowedAddsRanges.GetName();
+                var response = await Http.GetStringAsync($"{func}");
+
+                var data = JsonSerializer.Deserialize<AfrAllowedAddsRange>(response);
+                var ranges = data?.Value.ToList() ?? [];
+                await LocalStorage.SetItemAsStringAsync(Settings.AllowedAddsRangePerSlot.GetDescription(), JsonSerializer.Serialize(ranges));
+
+                func = AzureFunctions.GetSettingsByName.GetName();
+
+                response = await Http.GetStringAsync($"{func}/{Settings.ImageDimensions.GetDescription()}");
+                var settingData = JsonSerializer.Deserialize<AfrSetting>(response);
+                var settingValues = settingData?.Value.ToList() ?? [];
+                var setting = settingValues.FirstOrDefault();
+                if (setting is not null)
+                {
+                    var imageDimension = JsonSerializer.Deserialize<ImageDimension>(setting.SettingValue) ?? new ImageDimension { MinHeight = 150, MinWidth = 150, MaxHeight = 200, MaxWidth = 200 };
+                    await LocalStorage.SetItemAsStringAsync(Settings.ImageDimensions.GetDescription(), JsonSerializer.Serialize(imageDimension));
+                }
+
+                response = await Http.GetStringAsync($"{func}/{Settings.ImageMaxFilesize.GetDescription()}");
+                settingData = JsonSerializer.Deserialize<AfrSetting>(response);
+                settingValues = settingData?.Value.ToList() ?? [];
+                setting = settingValues.FirstOrDefault();
+                if (setting is not null)
+                {
+                    var imageMaxFilesize = JsonSerializer.Deserialize<int>(setting.SettingValue);
+                    await LocalStorage.SetItemAsStringAsync(Settings.ImageMaxFilesize.GetDescription(), JsonSerializer.Serialize(imageMaxFilesize));
+                }
+
+                response = await Http.GetStringAsync($"{func}/{Settings.AzureStorageContainerPath.GetDescription()}");
+                settingData = JsonSerializer.Deserialize<AfrSetting>(response);
+                settingValues = settingData?.Value.ToList() ?? [];
+                setting = settingValues.FirstOrDefault();
+                if (setting is not null)
+                {
+                    var AzureStorageContainerPath = JsonSerializer.Deserialize<string>(setting.SettingValue);
+                    await LocalStorage.SetItemAsStringAsync(Settings.AzureStorageContainerPath.GetDescription(), JsonSerializer.Serialize(setting.SettingValue));
+                }
+            }
+            catch (Exception ex)
+            {
+                SnackbarService.Clear();
+                SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+            }
+            finally
+            {
+                IsLoadingSettings = false;
             }
         }
 
@@ -90,8 +160,8 @@ namespace Client.Common
             }
             catch (Exception ex)
             {
+                SnackbarService.Clear();
                 SnackbarService.Add(ex.Message, Severity.Error, configure: config);
-                return;
             }
         }
 
@@ -110,13 +180,13 @@ namespace Client.Common
         async Task SwitchLanguage()
         {
             var cultures = LocalizationOptions.Value.SupportedCultures;
-            var name = await localStorage.GetItemAsync<string>("blazorCulture");
+            var name = await LocalStorage.GetItemAsync<string>("blazorCulture");
             var value = cultures.FirstOrDefault(x => x.Name == name) ?? cultures[0];
             if (CultureInfo.CurrentCulture != value)
             {
                 value = value == cultures[0] ? cultures[1] : cultures[0];
                 await JS.InvokeVoidAsync("blazorCulture.set", value.Name);
-                await localStorage.SetItemAsync("blazorCulture", value.Name);
+                await LocalStorage.SetItemAsync("blazorCulture", value.Name);
             }
 
             NavManager.NavigateTo(NavManager.Uri, forceLoad: true);
@@ -124,7 +194,7 @@ namespace Client.Common
 
         async Task GetSelectedCultureInfo()
         {
-            var result = await localStorage.GetItemAsync<string>("blazorCulture");
+            var result = await LocalStorage.GetItemAsync<string>("blazorCulture");
             SelectedCultureInfo = result != null ? new CultureInfo(result) : new CultureInfo("en-US");
         }
     }

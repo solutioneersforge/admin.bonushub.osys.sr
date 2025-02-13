@@ -147,6 +147,9 @@
   <data name="dark" xml:space="preserve">
     <value>dark</value>
   </data>
+  <data name="Default image" xml:space="preserve">
+    <value>Default image</value>
+  </data>
   <data name="Done" xml:space="preserve">
     <value>Done</value>
   </data>
@@ -177,6 +180,24 @@
   <data name="Image background color" xml:space="preserve">
     <value>Image background color</value>
   </data>
+  <data name="Image maximum filesize" xml:space="preserve">
+    <value>Image max. filesize</value>
+  </data>
+  <data name="Image maximum height" xml:space="preserve">
+    <value>Image max. height</value>
+  </data>
+  <data name="Image maximum width" xml:space="preserve">
+    <value>Image max. width</value>
+  </data>
+  <data name="Image minimum height" xml:space="preserve">
+    <value>Image min. height</value>
+  </data>
+  <data name="Image minimum width" xml:space="preserve">
+    <value>Image min. width </value>
+  </data>
+  <data name="Image settings" xml:space="preserve">
+    <value>Image settings</value>
+  </data>
   <data name="Image with the following extensions is allowed:" xml:space="preserve">
     <value>Image with the following extensions is allowed:</value>
   </data>
@@ -188,6 +209,9 @@
   </data>
   <data name="light" xml:space="preserve">
     <value>light</value>
+  </data>
+  <data name="Loading settings..." xml:space="preserve">
+    <value>Loading settings...</value>
   </data>
   <data name="Logged in as" xml:space="preserve">
     <value>Logged in as</value>
@@ -249,6 +273,9 @@
   <data name="Right" xml:space="preserve">
     <value>Right</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
   <data name="Search" xml:space="preserve">
     <value>Search</value>
   </data>
@@ -267,6 +294,12 @@
   <data name="Text" xml:space="preserve">
     <value>Text</value>
   </data>
+  <data name="The default image should be .png file." xml:space="preserve">
+    <value>The default image should be .png file.</value>
+  </data>
+  <data name="The file size of the image exceeds the limit of" xml:space="preserve">
+    <value>The file size of the image exceeds the limit of</value>
+  </data>
   <data name="The redirect URL is missing!" xml:space="preserve">
     <value>The redirect URL is missing!</value>
   </data>
@@ -275,6 +308,9 @@
   </data>
   <data name="Top" xml:space="preserve">
     <value>Top</value>
+  </data>
+  <data name="Upload an image" xml:space="preserve">
+    <value>Upload</value>
   </data>
   <data name="View image" xml:space="preserve">
     <value>View image</value>

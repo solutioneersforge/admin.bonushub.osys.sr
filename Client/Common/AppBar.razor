@@ -2,11 +2,13 @@
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject ILocalStorageService LocalStorage
 @inject IStringLocalizer<Resource> Localizer
 @inject IJSRuntime JS
 @inject NavigationManager NavManager
 @inject IOptions<RequestLocalizationOptions> LocalizationOptions
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 <MudAppBar Dense Style="@($"background-color: {(StandardTheme.IsInDarkMode ? AppColors.Tuna : AppColors.White)}")">
     <MudIconButton Icon="@(SideBarOpen ? @Icons.Material.Filled.MenuOpen : @Icons.Material.Filled.Menu)"
@@ -21,6 +23,13 @@
                   CloseIconClicked="(() => CloseAlertGreeting())">@GreetingText</MudAlert>
     }
 
+    @if (IsLoadingSettings)
+    {
+        <MudTooltip Text="@Localizer["Loading settings..."]" Arrow ShowOnHover Placement="Placement.Bottom">
+            <BricksLoading Size="30" />
+        </MudTooltip>
+    }
+
     <MudIconButton Icon="@(SelectedCultureInfo.Name.StartsWith("tr") ? EnglishFlag : TurkishFlag)" OnClick="SwitchLanguage" />
 
     <AuthorizeView>
@@ -33,7 +42,7 @@
             </MudTooltip>
         </NotAuthorized>
     </AuthorizeView>
-    <MudTooltip Text="@($"{@Localizer["Switch to"]} {(StandardTheme.IsInDarkMode ? @Localizer["light"] : @Localizer["dark"])} {@Localizer["mode"]}")" Arrow Placement="Placement.Bottom">
+    <MudTooltip Text="@($"{@Localizer["Switch to"]} {(StandardTheme.IsInDarkMode ? @Localizer["light"] : @Localizer["dark"])} {@Localizer["mode"]}")" ShowOnHover Arrow Placement="Placement.Bottom">
         <MudIconButton Icon="@(!StandardTheme.IsInDarkMode ? @Icons.Material.Filled.DarkMode : @Icons.Material.Filled.LightMode)" Color="MudBlazor.Color.Primary" OnClick="ToggleTheme" />
     </MudTooltip>
 </MudAppBar>

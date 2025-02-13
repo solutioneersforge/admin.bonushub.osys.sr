@@ -8,6 +8,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient Http
 @inject IStringLocalizer<Resource> Localizer
+@inject ILocalStorageService LocalStorage
 
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Text.Json
@@ -93,7 +94,11 @@
         var data = JsonSerializer.Deserialize<AfrAllowedAddsRange>(response);
         Data.Clear();
         Data = data?.Value.ToList() ?? [];
-        DataCopy = JsonSerializer.Deserialize<IEnumerable<AllowedAddsRange>>(JsonSerializer.Serialize(Data));
+        var jsonString = JsonSerializer.Serialize(Data);
+        if (string.IsNullOrEmpty(jsonString)) return;
+
+        DataCopy = JsonSerializer.Deserialize<IEnumerable<AllowedAddsRange>>(jsonString) ?? [];
+        await LocalStorage.SetItemAsStringAsync(Settings.AllowedAddsRangePerSlot.GetDescription(), jsonString);
     }
 
     async Task SaveChanges(AllowedAddsRange item)

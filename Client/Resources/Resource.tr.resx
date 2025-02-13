@@ -147,6 +147,9 @@
   <data name="dark" xml:space="preserve">
     <value>koyu</value>
   </data>
+  <data name="Default image" xml:space="preserve">
+    <value>Varsayılan resim</value>
+  </data>
   <data name="Done" xml:space="preserve">
     <value>Tamamlandı</value>
   </data>
@@ -177,6 +180,24 @@
   <data name="Image background color" xml:space="preserve">
     <value>Resim arka plan rengi</value>
   </data>
+  <data name="Image maximum filesize" xml:space="preserve">
+    <value>Maksimum resim dosya boyutu</value>
+  </data>
+  <data name="Image maximum height" xml:space="preserve">
+    <value>Maksimum resim yüksekliği</value>
+  </data>
+  <data name="Image maximum width" xml:space="preserve">
+    <value> Maksimum resim genişliği</value>
+  </data>
+  <data name="Image minimum height" xml:space="preserve">
+    <value>Minimum resim yüksekliği</value>
+  </data>
+  <data name="Image minimum width" xml:space="preserve">
+    <value>Minimum resim genişliği</value>
+  </data>
+  <data name="Image settings" xml:space="preserve">
+    <value>Resim ayarları</value>
+  </data>
   <data name="Image with the following extensions is allowed:" xml:space="preserve">
     <value>Aşağıdaki uzantılara sahip resimlere izin verilmektedir:</value>
   </data>
@@ -188,6 +209,9 @@
   </data>
   <data name="light" xml:space="preserve">
     <value>açık</value>
+  </data>
+  <data name="Loading settings..." xml:space="preserve">
+    <value>Ayarlar yükleniyor...</value>
   </data>
   <data name="Logged in as" xml:space="preserve">
     <value> Şu şekilde giriş yapıldı:</value>
@@ -249,6 +273,9 @@
   <data name="Right" xml:space="preserve">
     <value>Sağ</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>Kaydet</value>
+  </data>
   <data name="Search" xml:space="preserve">
     <value>Ara</value>
   </data>
@@ -267,6 +294,12 @@
   <data name="Text" xml:space="preserve">
     <value>Metin</value>
   </data>
+  <data name="The default image should be .png file." xml:space="preserve">
+    <value>Varsayılan resim .png dosyası olmalıdır.</value>
+  </data>
+  <data name="The file size of the image exceeds the limit of" xml:space="preserve">
+    <value>Resmin dosya boyutu sınırı aşıyor</value>
+  </data>
   <data name="The redirect URL is missing!" xml:space="preserve">
     <value>Yönlendirme URL’si eksik!</value>
   </data>
@@ -275,6 +308,9 @@
   </data>
   <data name="Top" xml:space="preserve">
     <value>Üst</value>
+  </data>
+  <data name="Upload an image" xml:space="preserve">
+    <value>Bir resim yükleyin</value>
   </data>
   <data name="View image" xml:space="preserve">
     <value>Resmi görüntüle</value>
