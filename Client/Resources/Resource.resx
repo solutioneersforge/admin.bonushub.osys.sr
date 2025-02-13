@@ -231,6 +231,9 @@
   <data name="No image has been selected!" xml:space="preserve">
     <value>No image has been selected!</value>
   </data>
+  <data name="No ranks are available" xml:space="preserve">
+    <value>No ranks are available because the maximum adds are reached for slot {0}.</value>
+  </data>
   <data name="No, cancel!" xml:space="preserve">
     <value>No, cancel!</value>
   </data>

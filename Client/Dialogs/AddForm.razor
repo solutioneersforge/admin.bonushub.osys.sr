@@ -14,10 +14,14 @@
 @inject IJSRuntime JSRuntime
 @inject ILocalStorageService LocalStorage
 
-<MudDialog>
-
+<MudDialog Style="min-width:350px">
     <DialogContent>
         <MudStack Row>
+            <MudStack Spacing="0">
+                <MudText Align="MudBlazor.Align.Center" Typo="Typo.caption">@Localizer["Slot"]</MudText>
+                <MudAlert ContentAlignment="HorizontalAlignment.Center" Square NoIcon Dense Variant="Variant.Outlined">@SelectedItem.AddPlacementZone</MudAlert>
+            </MudStack>
+
             <MudStack Spacing="0">
                 <MudText Align="MudBlazor.Align.Center" Typo="Typo.caption">@Localizer["Rank"]</MudText>
                 <MudAlert ContentAlignment="HorizontalAlignment.Center" Square NoIcon Dense Variant="Variant.Outlined" OnClick="PickRank">@SelectedItem.DisplayOrder</MudAlert>
@@ -41,7 +45,15 @@
             </center>
         </MudStack>
 
-        <MudImage Style="@($"background-color: {SelectedItem.ImageBgColor};margin:5px;")" hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill" Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25" Class="rounded-lg" />
+        <center>
+            <MudImage Style="@($"background-color: {SelectedItem.ImageBgColor};margin:5px;")"
+            hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid
+            ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill"
+            Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25"
+            Width="@ImageDimensions.MaxWidth"
+            Height="@ImageDimensions.MaxHeight"
+            Class="rounded-lg" />
+        </center>
 
         <MudColorPicker ShowToolbar="true" Label="@Localizer["Image background color"]" PickerVariant="PickerVariant.Dialog" @bind-Text="@SelectedItem.ImageBgColor" />
         <MudTextField @bind-Value="@SelectedItem.LabelText" Label="@Localizer["Text"]" Required Variant="Variant.Text" Margin="Margin.Dense" />
@@ -89,7 +101,7 @@
     List<int> AvailableRanks = [];
     ImageDimension ImageDimensions = new();
     int ImageMaxFilesize = 10;
-    long MaxFileSize = 1024 * 1024; 
+    long MaxFileSize = 1024 * 1024;
 
     protected override async Task OnInitializedAsync()
     {
@@ -367,6 +379,14 @@
 
     async Task PickRank()
     {
+
+        if(AvailableRanks.Count == 0)
+        {
+            SnackbarService.Clear();
+            SnackbarService.Add(string.Format(Localizer["No ranks are available"], SelectedItem.AddPlacementZone), Severity.Info, configure: config);
+            return;
+        }
+
         var parameters = new DialogParameters
          {
               { "SelectedItem", SelectedItem.DisplayOrder }, { nameof(AvailableRanks), AvailableRanks }
