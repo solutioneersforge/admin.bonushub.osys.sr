@@ -9,5 +9,17 @@
   "globalHeaders": {
     "Access-Control-Allow-Origin": "https://admin.bonushub.osys.sr",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS"
+  },
+  "routes": [
+    {
+      "route": "/*",
+      "allowedRoles": [ "authenticated" ]
+    }
+  ],
+  "responseOverrides": {
+    "401": {
+      "statusCode": 302,
+      "redirect": "/.auth/login/aad"
+    }
   }
 }
