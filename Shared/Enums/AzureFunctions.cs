@@ -21,6 +21,8 @@ namespace Shared.Enums
         [Description("api/FunctionGetSettingsByName")]
         GetSettingsByName,
         [Description("api/FunctionUpdateSettingsByName")]
-        UpdateSettingsByName,
+        UpdateSettingsByName, 
+        [Description("api/FunctionReorderAdds")]
+        ReorderAdds,
     }
 }

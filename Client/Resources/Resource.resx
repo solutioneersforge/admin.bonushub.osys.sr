@@ -132,6 +132,9 @@
   <data name="Are you sure you want to update the adds-range for slot?" xml:space="preserve">
     <value>Are you sure you want to update the adds-range for slot?</value>
   </data>
+  <data name="Aside" xml:space="preserve">
+    <value>Aside</value>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
@@ -227,6 +230,9 @@
   </data>
   <data name="mode" xml:space="preserve">
     <value>mode</value>
+  </data>
+  <data name="Current order" xml:space="preserve">
+    <value>Current order</value>
   </data>
   <data name="New value" xml:space="preserve">
     <value>New value</value>

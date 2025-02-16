@@ -448,7 +448,7 @@
 
     async Task<bool> StoreImage(CancellationToken token)
     {
-        SelectedItem.ImageAsBase64String = SelectedImageSrc; //.Replace($"data:{ImageFile.ContentType};base64,", "");
+        SelectedItem.ImageAsBase64String = SelectedImageSrc;
         var func = AzureFunctions.StoreImage.GetName();
         var response = await Http.PostAsJsonAsync(func, SelectedItem, token);
 

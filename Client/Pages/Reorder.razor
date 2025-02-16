@@ -1,0 +1,213 @@
+﻿@page "/reorder/{Slot}"
+
+@attribute [Authorize(Roles = "admin")]
+
+@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject IStringLocalizer<Resource> Localizer
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Text.Json
+@using Data.AzureFunctionResponse
+@using Data.Models
+@using MudBlazor.Utilities
+
+@implements IDisposable
+
+@if (_loading)
+{
+    <div style="position:absolute; top:30vh; width:100%; text-align:center">
+        <div style="display:flex; gap:10px; justify-content:center; align-items:center">
+            <div class="spinner-border"></div>
+            Loading...
+        </div>
+    </div>
+}
+
+@if (!_loading && _dropzoneItems.Any())
+{
+    <div class="d-flex flex-column mud-width-full mud-height-full">
+        <MudDropContainer T="DropItem" Items="@_dropzoneItems" @ref="_container" ItemsSelector="@((item,dropzone) => item.Selector == dropzone)" ItemDropped="ItemUpdated"
+                          Class="d-flex flex-wrap flex-grow-1">
+            <ChildContent>
+
+                <MudPaper Class="ma-4 flex-grow-1">
+                    <MudList T="string" Class="d-flex flex-column mud-height-full">
+                        <MudListSubheader>@Localizer["Current order"]</MudListSubheader>
+                        <MudDropZone T="DropItem" Identifier="Current order" Class="flex-grow-1" AllowReorder="true" />
+                    </MudList>
+                </MudPaper>
+
+                <MudPaper Class="ma-4 flex-grow-1">
+                    <MudList T="string" Class="d-flex flex-column mud-height-full">
+                        <MudListSubheader>@Localizer["Aside"]</MudListSubheader>
+                        <MudDropZone T="DropItem" Identifier="Aside" Class="flex-grow-1" AllowReorder="true" />
+                    </MudList>
+                </MudPaper>
+
+            </ChildContent>
+            <ItemRenderer>
+                <MudListItem T="string" Text="@($"{context.Name} ({(context.Rank + (_dropzoneItems.Any(x => x.Rank == 0) ? 1 : 0))})")" />
+            </ItemRenderer>
+        </MudDropContainer>
+    </div>
+
+    <MudFab StartIcon="@Icons.Material.Filled.Save" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info"
+            OnClick="@Save"
+            Style="position: fixed;bottom: 80px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />
+
+    <MudFab StartIcon="@Icons.Material.Filled.Restore" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Warning"
+            OnClick="@ResetOrder"
+            Style="position: fixed;bottom: 20px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />
+}
+
+
+@code {
+    [CascadingParameter] public Client.States.States State { get; set; } = new();
+    readonly Action<SnackbarOptions> config = (SnackbarOptions options) =>
+     {
+         options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+         options.ShowCloseIcon = true;
+     };
+
+    [Parameter]
+    public string Slot { get; set; } = string.Empty;
+
+    bool _loading;
+    bool _showPublishedAddsOnly = true;
+    string LoggedInUser = string.Empty;
+    IEnumerable<Add> Adds = [];
+    CancellationTokenSource AbortTokenSource = new();
+
+    protected override void OnParametersSet() => State.OnThemeChanged += HandleEvent;
+    void IDisposable.Dispose() => State.OnThemeChanged -= HandleEvent;
+    async Task HandleEvent() => await Task.CompletedTask;
+
+    private MudDropContainer<DropItem> _container = new();
+
+    private void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
+    {
+        if (dropItem is null || dropItem.Item is null) return;
+
+        dropItem.Item.Selector = dropItem.DropzoneIdentifier;
+
+        var indexOffset = dropItem.DropzoneIdentifier switch
+        {
+            "Aside" => _dropzoneItems.Count(x => x.Selector == "Current order"),
+            _ => 0
+        };
+
+        _dropzoneItems.UpdateOrder(dropItem, item => item.Rank, indexOffset);
+    }
+
+    private List<DropItem> _dropzoneItems = new();
+
+    private void RefreshContainer()
+    {
+        //update the binding to the container
+        StateHasChanged();
+
+        //the container refreshes the internal state
+        _container.Refresh();
+    }
+
+    public class DropItem
+    {
+        public int Id { get; set; }
+        public string Name { get; init; } = string.Empty;
+        public string Selector { get; set; } = string.Empty;
+        public int Rank { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            SnackbarService.Clear();
+
+#if !DEBUG
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity == null || !user.Identity.IsAuthenticated)
+            {
+                NavigationManager.NavigateTo("/.auth/login/aad", true);
+                return;
+            }
+
+            if (user.Identity != null && user.Identity.IsAuthenticated)
+            {
+                LoggedInUser = user.Identity.Name;
+            }
+
+#else
+    await Task.CompletedTask;
+#endif
+
+            if (string.IsNullOrEmpty(Slot))
+            {
+                NavigationManager.NavigateTo($"/{Slot.ToLower()}adds", true);
+            }
+
+            _loading = true;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Add(ex.Message, Severity.Error, configure: config);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    async Task LoadData()
+    {
+        var func = AzureFunctions.GetAdds.GetName();
+        var response = await Http.GetStringAsync($"{func}/{_showPublishedAddsOnly}/{Slot}");
+
+        var data = JsonSerializer.Deserialize<AfrAdd>(response);
+        Adds = data?.Value ?? [];
+
+        ResetOrder();
+    }
+
+    void ResetOrder()
+    {
+        _dropzoneItems.Clear();
+
+        _dropzoneItems = Adds.Select(x => new DropItem
+            {
+                Id = x.Id,
+                Name = x.LabelText,
+                Rank = x.DisplayOrder,
+                Selector = "Current order"
+            }).OrderBy(x => x.Rank).ToList();
+
+        RefreshContainer();
+    }
+
+    async Task Save()
+    {
+        var ls = _dropzoneItems.Select(x => new Add
+            {
+                Id = x.Id,
+                DisplayOrder = x.Rank + 1, //because the rank is 0 based
+            });
+
+        await Task.CompletedTask;
+
+        var func = AzureFunctions.ReorderAdds.GetName();
+        var response = await Http.PostAsJsonAsync(func, ls, AbortTokenSource.Token);
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo($"/{Slot.ToLower()}adds", true);
+        }
+    }
+}
+

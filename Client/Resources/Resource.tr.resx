@@ -132,6 +132,9 @@
   <data name="Are you sure you want to update the adds-range for slot?" xml:space="preserve">
     <value>Yuva için reklam aralığını güncellemek istediğinizden emin misiniz?</value>
   </data>
+  <data name="Aside" xml:space="preserve">
+    <value>Bir kenara</value>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>İptal</value>
   </data>
@@ -227,6 +230,9 @@
   </data>
   <data name="mode" xml:space="preserve">
     <value>tema</value>
+  </data>
+  <data name="Current order" xml:space="preserve">
+    <value>Mevcut sıra</value>
   </data>
   <data name="New value" xml:space="preserve">
     <value>Yeni Değer</value>

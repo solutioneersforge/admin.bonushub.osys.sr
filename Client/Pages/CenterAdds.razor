@@ -41,6 +41,13 @@
         }
     </MudPaper>
 
+    @if (_showPublishedAddsOnly && FilteredAdds.Any())
+    {
+                <MudFab StartIcon="@Icons.Material.Filled.Reorder" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info"
+                        OnClick="@Reorder"
+                        Style="position: fixed;bottom: 140px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />
+    }
+
     <MudFab StartIcon="@(_showPublishedAddsOnly ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add)"
             IconColor="@(_showPublishedAddsOnly ? MudBlazor.Color.Error : MudBlazor.Color.Success)"
             Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
@@ -207,6 +214,11 @@
         {
             _loading = false;
         }
+    }
+
+    void Reorder()
+    {
+        NavigationManager.NavigateTo($"/reorder/{Slot.GetDescription()}", true);
     }
 }
 
