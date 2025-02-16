@@ -37,7 +37,7 @@
                     <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png, .apng, .jpg, .jpeg, .jpe, .jif, .jfif, .svg, .webp, .bmp, .tif, .tiff, .avif, .xbm" Required>
                         <ActivatorContent>
                             <MudIconButton Color="MudBlazor.Color.Info" Style="margin-top:25px" Size="MudBlazor.Size.Small"
-                            Icon="@Icons.Material.Filled.PhotoCamera">
+                                           Icon="@Icons.Material.Filled.PhotoCamera">
                             </MudIconButton>
                         </ActivatorContent>
                     </MudFileUpload>
@@ -46,13 +46,17 @@
         </MudStack>
 
         <center>
-            <MudImage Style="@($"background-color: {SelectedItem.ImageBgColor};margin:5px;")"
-            hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid
-            ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill"
-            Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25"
-            Width="@ImageDimensions.MaxWidth"
-            Height="@ImageDimensions.MaxHeight"
-            Class="rounded-lg" />
+            <MudFileUpload T="IBrowserFile" FilesChanged="UploadImageFile" AppendMultipleFiles="false" Accept=".png, .apng, .jpg, .jpeg, .jpe, .jif, .jfif, .svg, .webp, .bmp, .tif, .tiff, .avif, .xbm" Required>
+                <ActivatorContent>
+                    <MudImage Style="@($"background-color: {SelectedItem.ImageBgColor};margin:5px;")"
+                              hidden="@(string.IsNullOrEmpty(SelectedImageSrc))" Fluid
+                              ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill"
+                              Src="@SelectedImageSrc" Alt="@SelectedItem.LabelText" Elevation="25"
+                              Width="@ImageDimensions.MaxWidth"
+                              Height="@ImageDimensions.MaxHeight"
+                              Class="rounded-lg" />
+                </ActivatorContent>
+            </MudFileUpload>
         </center>
 
         <MudColorPicker ShowToolbar="true" Label="@Localizer["Image background color"]" PickerVariant="PickerVariant.Dialog" @bind-Text="@SelectedItem.ImageBgColor" />
@@ -62,7 +66,7 @@
         <MudTextField @bind-Value="@SelectedItem.FontSize" Label="@Localizer["Font size"]" InputMode="InputMode.numeric" Required Variant="Variant.Text" Margin="Margin.Dense" />
         <MudTextField @bind-Value="@SelectedItem.RedirectUrl" Label="@Localizer["Redirect URL"]" Required AutoFocus Margin="Margin.Dense" />
         <MudSwitch Label="@(SelectedItem.IsPublished ? Localizer["Published"] : Localizer["Not published"])" Size="MudBlazor.Size.Medium" @bind-Value="@SelectedItem.IsPublished" ThumbIcon="@(SelectedItem.IsPublished ? @Icons.Material.Filled.Add : @Icons.Material.Filled.Remove)"
-        ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
+                   ThumbIconColor="@(SelectedItem.IsPublished ? MudBlazor.Color.Success : MudBlazor.Color.Error)" />
     </DialogContent>
     <DialogActions>
         <MudIconButton Size="MudBlazor.Size.Small" Icon="@Icons.Material.Filled.Restore" Color="MudBlazor.Color.Info" OnClick="Reset" Disabled="@SaveInProgress" />
@@ -95,6 +99,9 @@
     string ImageLimitationText = string.Empty;
     string default_image = "default_image";
     string default_image_fileextention = ".png";
+    string ImageBlobNameGuid = string.Empty;
+    string AzureStorageContainerPath = string.Empty;
+
     bool SaveInProgress = false; bool DoNotCloseForm = false;
     int NumberOfNewItemsSaved;
     CancellationTokenSource AbortTokenSource = new();
@@ -107,10 +114,10 @@
     {
         SnackbarService.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
 
-        var storedPath = await LocalStorage.GetItemAsync<string>(Settings.AzureStorageContainerPath.GetDescription());
-        if (!string.IsNullOrEmpty(storedPath))
+        AzureStorageContainerPath = await LocalStorage.GetItemAsync<string>(Settings.AzureStorageContainerPath.GetDescription()) ?? string.Empty;
+        if (!string.IsNullOrEmpty(AzureStorageContainerPath))
         {
-            SelectedImageSrc = $"{storedPath}{default_image}{default_image_fileextention}";
+            SelectedImageSrc = $"{AzureStorageContainerPath}{default_image}{default_image_fileextention}";
         }
 
         var jsonString = await LocalStorage.GetItemAsync<string>(Settings.ImageDimensions.GetDescription());
@@ -157,6 +164,13 @@
         if (SelectedItem.Id > 0)
         {
             SelectedImageSrc = SelectedItem.ImageBlobUrl;
+            ImageBlobNameGuid = Path.GetFileNameWithoutExtension(SelectedItem.ImageBlobName);
+        }
+        else
+        {
+            ImageBlobNameGuid = Guid.NewGuid().ToString();
+            SelectedItem.ImageFileName = $"{default_image}{default_image_fileextention}";
+            SelectedItem.ImageBlobName = $"{default_image}{default_image_fileextention}";
         }
         LoggedInUser = SelectedItem.User;
         BackupCopyItem = new Add
@@ -196,7 +210,7 @@
                 SaveInProgress = true;
                 ImageFile = file;
                 SelectedItem.ImageFileName = ImageFile.Name;
-                SelectedItem.ImageBlobName = $"{Guid.NewGuid()}{Path.GetExtension(ImageFile.Name)}";
+                SelectedItem.ImageBlobName = $"{ImageBlobNameGuid}{Path.GetExtension(ImageFile.Name)}";
                 using (var stream = ImageFile.OpenReadStream(maxAllowedSize: MaxFileSize))
                 {
                     using (var memoryStream = new MemoryStream())
@@ -282,38 +296,10 @@
             }
 
             CancellationToken cancellationToken = AbortTokenSource.Token;
-            await SaveDataAsync(cancellationToken);
-            if (DoNotCloseForm)
+            if (await SaveDataAsync(cancellationToken))
             {
-                NumberOfNewItemsSaved++;
-                ImageFile = null!;
-                SelectedImageSrc = string.Empty;
-                SelectedItem = new Add
-                    {
-                        Id = -1,
-                        LabelText = string.Empty,
-                        BonusAmountText = string.Empty,
-                        FontFamily = string.Empty,
-                        FontSize = string.Empty,
-                        ImageBgColor = string.Empty,
-                        RedirectUrl = string.Empty,
-                        ImageBlobName = string.Empty,
-                        ImageFileName = string.Empty,
-                        User = LoggedInUser,
-                        ImageAsBase64String = string.Empty,
-                        AddPlacementZone = "Top",
-                        IsActive = true,
-                        IsPublished = false,
-                        DisplayOrder = 1,
-                        ActiveFrom = DateTime.Now,
-                        ActiveUntil = DateTime.Now,
-                        DesktopClickCount = 0,
-                        MobileTapCount = 0
-                    };
-                StateHasChanged();
-                return;
+                MudDialog.Close(DialogResult.Ok(true));
             }
-            MudDialog.Close(DialogResult.Ok(true));
         }
         catch (OperationCanceledException)
         {
@@ -380,7 +366,7 @@
     async Task PickRank()
     {
 
-        if(AvailableRanks.Count == 0)
+        if (AvailableRanks.Count == 0)
         {
             SnackbarService.Clear();
             SnackbarService.Add(string.Format(Localizer["No ranks are available"], SelectedItem.AddPlacementZone), Severity.Info, configure: config);
@@ -441,12 +427,20 @@
 
     async Task<bool> SaveDataAsync(CancellationToken token)
     {
-        /*
-         * do not check whether image is stored or not
-         * as sometimes user would want to edit other information than changing the image
-         * in this case ImageFile will be null
-         */
-        await StoreImage(token);
+        if (ImageFile is not null)
+        {
+            if (!string.IsNullOrEmpty(AzureStorageContainerPath))
+            {
+                var isImageStored = await StoreImage(token);
+                if (!isImageStored)
+                {
+                    SnackbarService.Clear();
+                    SnackbarService.Add(Localizer["The image could not be stored."], Severity.Error, configure: config);
+                    return false;
+                }
+            }
+        }
+
         var func = AzureFunctions.AddAdd.GetName();
         var response = await Http.PostAsJsonAsync(func, SelectedItem, token);
         return response.IsSuccessStatusCode;
@@ -454,10 +448,31 @@
 
     async Task<bool> StoreImage(CancellationToken token)
     {
-        if (ImageFile is null) return false;
-        SelectedItem.ImageAsBase64String = SelectedImageSrc.Replace($"data:{ImageFile.ContentType};base64,", "");
+        SelectedItem.ImageAsBase64String = SelectedImageSrc; //.Replace($"data:{ImageFile.ContentType};base64,", "");
         var func = AzureFunctions.StoreImage.GetName();
         var response = await Http.PostAsJsonAsync(func, SelectedItem, token);
-        return response.IsSuccessStatusCode;
+
+        if (!string.IsNullOrEmpty(AzureStorageContainerPath))
+        {
+            SelectedItem.ImageBlobUrl = $"{AzureStorageContainerPath}{SelectedItem.ImageBlobName}";
+            return await CheckBlobExistsAsync($"{SelectedItem.ImageBlobUrl}");
+        }
+
+        return false;
+    }
+
+    public async Task<bool> CheckBlobExistsAsync(string blobUrl)
+    {
+        using (HttpClient httpClient = new())
+        {
+            HttpResponseMessage response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, blobUrl));
+
+            return response.StatusCode switch
+            {
+                System.Net.HttpStatusCode.OK => true,
+                System.Net.HttpStatusCode.NotFound => false,
+                _ => throw new Exception($"{Localizer["Failed to check image existence.Status code:"]} {response.StatusCode}")
+            };
+        }
     }
 }

@@ -1,11 +1,29 @@
-﻿<MudDialog>
+﻿@inject ILocalStorageService LocalStorage
+
+<MudDialog>
     <DialogContent>
-        <MudCardMedia Style="width: 300px; height: 200px;object-position:center;object-fit:scale-down"
-                      Image="@SelectedItem.ImageBlobUrl" />
+        <MudImage Style="@($"background-color: {SelectedItem.ImageBgColor};margin:5px;")"
+                  hidden="@(string.IsNullOrEmpty(SelectedItem.ImageBlobUrl))" Fluid
+                  ObjectPosition="ObjectPosition.Center" ObjectFit="@ObjectFit.Fill"
+                  Src="@SelectedItem.ImageBlobUrl" Alt="@SelectedItem.LabelText" Elevation="25"
+                  Width="@ImageDimensions.MaxWidth"
+                  Height="@ImageDimensions.MaxHeight"
+                  Class="rounded-lg" />
     </DialogContent>
 </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public Add SelectedItem { get; set; } = new();
+
+    ImageDimension ImageDimensions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var jsonString = await LocalStorage.GetItemAsync<string>(Settings.ImageDimensions.GetDescription());
+        if (!string.IsNullOrEmpty(jsonString))
+        {
+            ImageDimensions = JsonSerializer.Deserialize<ImageDimension>(jsonString) ?? new();
+        }
+    }
 }

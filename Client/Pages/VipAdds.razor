@@ -36,8 +36,8 @@
         }
     </MudPaper>
 
-    <MudFab StartIcon="@(_showPublishedAddsOnly ? Icons.Material.Filled.Add : Icons.Material.Filled.Remove)"
-    IconColor="@(_showPublishedAddsOnly ? MudBlazor.Color.Success : MudBlazor.Color.Error)"
+    <MudFab StartIcon="@(_showPublishedAddsOnly ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add)"
+    IconColor="@(_showPublishedAddsOnly ? MudBlazor.Color.Error : MudBlazor.Color.Success)"
     Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default"
     Class="floating-button-filter" OnClick="@ShowPublishedAddsOnly"
     Style="position: fixed;bottom: 80px;right: 20px;z-index: 1000;box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);transition: transform 0.3s ease-in-out;" />

@@ -33,7 +33,15 @@ namespace Api
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(account);
             BlobClient blobClient = containerClient.GetBlobClient(parameters.ImageBlobName);
 
-            byte[] imageBytes = Convert.FromBase64String(parameters.ImageAsBase64String);
+            string base64String = parameters.ImageAsBase64String.Split(',')[1];
+            // Add padding if necessary
+            int mod4 = base64String.Length % 4;
+            if (mod4 > 0)
+            {
+                base64String += new string('=', 4 - mod4);
+            }
+
+            byte[] imageBytes = Convert.FromBase64String(base64String);
             using (var stream = new MemoryStream(imageBytes))
             {
                 await blobClient.UploadAsync(stream, true);

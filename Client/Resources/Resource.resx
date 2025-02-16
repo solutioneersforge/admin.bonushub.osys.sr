@@ -156,6 +156,9 @@
   <data name="Edit" xml:space="preserve">
     <value>Edit</value>
   </data>
+  <data name="Failed to check image existence. Status code:" xml:space="preserve">
+    <value>Failed to check image existence. Status code:</value>
+  </data>
   <data name="Font" xml:space="preserve">
     <value>Font</value>
   </data>
@@ -302,6 +305,9 @@
   </data>
   <data name="The file size of the image exceeds the limit of" xml:space="preserve">
     <value>The file size of the image exceeds the limit of</value>
+  </data>
+  <data name="The image could not be stored." xml:space="preserve">
+    <value>The image could not be stored.</value>
   </data>
   <data name="The redirect URL is missing!" xml:space="preserve">
     <value>The redirect URL is missing!</value>
